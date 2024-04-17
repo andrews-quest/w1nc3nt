@@ -1,0 +1,6 @@
+greet - begrüße die Herrinen 
+about_w1nc3nt - erzähl uns über deine Möglichkeiten
+check_finances - aktuelle Finanzstelle
+history_of_finances - geschichte
+update_finances - neuer Eintrag
+lunar_digest - was ist neu zum Mond?
