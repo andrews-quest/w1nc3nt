@@ -1,0 +1,5 @@
+spring.application.name=w1nc3nt
+telegram.bot.username=
+telegram.bot.test_token=
+telegram.bot.token=
+spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
