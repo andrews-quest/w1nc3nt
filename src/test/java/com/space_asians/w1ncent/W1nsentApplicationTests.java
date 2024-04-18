@@ -1,4 +1,4 @@
-package com.space_asians.w1nsent;
+package com.space_asians.w1ncent;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

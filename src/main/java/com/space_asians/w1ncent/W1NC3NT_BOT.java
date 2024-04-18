@@ -1,4 +1,4 @@
-package com.space_asians.w1nsent;
+package com.space_asians.w1ncent;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
@@ -8,10 +8,9 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
-import java.util.List;
 
 
-public class W1NS3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
+public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
 
     @Value("${telegram.bot.username}")
     private String username;
@@ -19,7 +18,7 @@ public class W1NS3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
     // private String token;
 
     private final TelegramClient telegramClient;
-    public W1NS3NT_BOT(String token){
+    public W1NC3NT_BOT(String token){
        telegramClient = new OkHttpTelegramClient(token);
     }
 
