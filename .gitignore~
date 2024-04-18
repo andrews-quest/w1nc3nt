@@ -7,8 +7,6 @@ config.txt
 avatar.png
 avatar_text.png
 src/main/resources/application.properties
-bfg-1.14.0.jar
-
 
 ### STS ###
 .apt_generated
