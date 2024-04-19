@@ -6,11 +6,17 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 
 public class W1NC3NTManager {
 
+    public boolean is_engaged = false;
+
     public SendMessage consume(Update update){
         return SendMessage
                 .builder()
                 .chatId(update.getMessage().getChatId())
                 .text("Sie benutzen ein allgemeiner W1NC3NTManager anstatt von spezialisiertem Manager. Etwas ist Schiffgegangen.")
                 .build();
+    }
+
+    public void end(){
+        this.is_engaged = false;
     }
 }

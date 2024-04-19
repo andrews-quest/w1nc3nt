@@ -78,7 +78,12 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
                 throw new RuntimeException(e);
             }
         }
+
         this.sm = null;
+        if(this.current_manager != null && this.current_manager.is_engaged == false){
+            this.current_manager.end();
+            this.current_manager = null;
+        }
 
     }
 

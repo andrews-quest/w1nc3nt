@@ -9,7 +9,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 public class FinanceManager extends W1NC3NTManager{
 
-    public boolean is_engaged = false;
     private SendMessage sm = null;
 
     private String[] members = {"Firuz", "Nikita", "Katia", "Dasha", "Andii"};
@@ -91,6 +90,34 @@ public class FinanceManager extends W1NC3NTManager{
                 .build();
     }
 
+    private SendMessage ask_how_much(long chat_id){
+        return SendMessage
+                .builder()
+                .chatId(chat_id)
+                .text("Wie groß war die Transaktion? Nennes Sie bitte die Summe in Euro.")
+                .build();
+    }
+
+    private SendMessage ask_for_what(long chat_id){
+        return SendMessage
+                .builder()
+                .chatId(chat_id)
+                .text("Wofür wurde es geleistet?")
+                .build();
+    }
+
+    private SendMessage summary(long chat_id){
+        return SendMessage.
+                builder()
+                .chatId(chat_id)
+                .text("Also die Eintrag ist wie folgend:\n" +
+                        "am " + this.date + "\n" +
+                        this.who + " -> " + this.whom + "\n" +
+                        this.how_much + " für " + this.for_what)
+                .build();
+
+    }
+
     @Override
     public SendMessage consume(Update update){
         Message message = null;
@@ -156,17 +183,46 @@ public class FinanceManager extends W1NC3NTManager{
             return this.ask_who(message.getChatId());
         }
 
+        if(this.whom == null){
+
+            if(update.hasCallbackQuery()){
+                this.whom = update.getCallbackQuery().getData();
+                return this.ask_how_much(update.getCallbackQuery().getMessage().getChatId());
+            }
+            return this.ask_whom(message.getChatId());
+        }
+
+        if(this.how_much == null){
+
+            if(update.hasMessage()){
+                this.how_much = update.getMessage().getText();
+                return this.ask_for_what(update.getMessage().getChatId());
+            }
+            return this.ask_how_much(message.getChatId());
+        }
+
+        if(this.for_what == null){
+
+            if(update.hasMessage()){
+                this.for_what = update.getMessage().getText();
+                this.is_engaged = false;
+                return this.summary(update.getMessage().getChatId());
+            }
+            return this.ask_for_what(message.getChatId());
+        }
+
         return null;
 
 
     }
 
-    private void end(){
+    @Override
+    public void end(){
         this.is_engaged = false;
-        this.date = "";
-        this.who = "";
-        this.whom = "";
-        this.how_much = "";
-        this.for_what = "";
+        this.date = null;
+        this.who = null;
+        this.whom = null;
+        this.how_much = null;
+        this.for_what = null;
     }
 }
