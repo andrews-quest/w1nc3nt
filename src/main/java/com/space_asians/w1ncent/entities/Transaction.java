@@ -15,7 +15,7 @@ public class Transaction {
     @Column
     private int id;
 
-    @Column
+    @Column(name = "`when`")
     private String when;
     @Column
     private String who;

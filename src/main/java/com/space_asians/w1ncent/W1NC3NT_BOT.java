@@ -2,7 +2,10 @@ package com.space_asians.w1ncent;
 
 import com.space_asians.w1ncent.managers.FinanceManager;
 import com.space_asians.w1ncent.managers.W1NC3NTManager;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -12,21 +15,23 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 
 
+@Service
 public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
     @Value("${telegram.bot.username}")
     private String username;
-    // @Value("${telegram.bot.test_token}")
-    // private String token;
+    @Value("${telegram.bot.test_token}")
+    private String token;
 
-
-    public W1NC3NT_BOT(String token){
-        telegramClient = new OkHttpTelegramClient(token);
-    }
 
     // Message properties
-    private final TelegramClient telegramClient;
+    @PostConstruct
+    public void init(){
+        this.telegramClient = new OkHttpTelegramClient(token);
+    }
+    private TelegramClient telegramClient;
     private W1NC3NTManager current_manager;
-    private FinanceManager financeManager = new FinanceManager();
+    @Autowired
+    private FinanceManager financeManager;
 
     private SendMessage sm = null;
     private Message message;

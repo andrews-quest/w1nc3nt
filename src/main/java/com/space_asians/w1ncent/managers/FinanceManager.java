@@ -1,5 +1,9 @@
 package com.space_asians.w1ncent.managers;
 
+import com.space_asians.w1ncent.entities.Transaction;
+import com.space_asians.w1ncent.repositories.TransactionsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
@@ -7,12 +11,16 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 
+@Service
 public class FinanceManager extends W1NC3NTManager{
 
     private SendMessage sm = null;
 
     private String[] members = {"Firuz", "Nikita", "Katia", "Dasha", "Andii"};
 
+    private Transaction transaction = new Transaction();
+    @Autowired
+    private TransactionsRepository transactionsRepository;
     private String date;
     private String who;
     private String whom;
@@ -118,6 +126,15 @@ public class FinanceManager extends W1NC3NTManager{
 
     }
 
+    private void save_to_db(){
+        this.transaction.setWhen(this.date);
+        this.transaction.setWho(this.who);
+        this.transaction.setWhom(this.whom);
+        this.transaction.setHow_much(Float.parseFloat(this.how_much));
+        this.transaction.setFor_what(this.for_what);
+        transactionsRepository.save(transaction);
+    }
+
     @Override
     public SendMessage consume(Update update){
         Message message = null;
@@ -206,6 +223,7 @@ public class FinanceManager extends W1NC3NTManager{
             if(update.hasMessage()){
                 this.for_what = update.getMessage().getText();
                 this.is_engaged = false;
+                this.save_to_db();
                 return this.summary(update.getMessage().getChatId());
             }
             return this.ask_for_what(message.getChatId());
