@@ -27,6 +27,14 @@ public class FinanceManager extends W1NC3NTManager{
         return this.consume(update);
     }
 
+    private SendMessage false_input(long chat_id){
+        return SendMessage
+                .builder()
+                .chatId(chat_id)
+                .text("Tut mir leid, ich kann diese Eingabe nicht erkennen. Bitte, versuchen Sie es nochmal.")
+                .build();
+    }
+
     private SendMessage ask_date(long chat_id){
         return SendMessage
                 .builder()
@@ -39,19 +47,43 @@ public class FinanceManager extends W1NC3NTManager{
         return SendMessage
                 .builder()
                 .chatId(chat_id)
-                .text("Wer ist schuld?")
+                .text("Wer hat die Transaktion durchgeführt?")
                 .replyMarkup(InlineKeyboardMarkup
                         .builder()
                         .keyboardRow(
                                 new InlineKeyboardRow(InlineKeyboardButton
                                         .builder()
                                         .text("Firuz")
-                                        .callbackData("ja")
+                                        .callbackData("firuz")
                                         .build(),
                                         InlineKeyboardButton
                                                 .builder()
                                                 .text("Dasha")
-                                                .callbackData("nein")
+                                                .callbackData("dasha")
+                                                .build()
+                                )
+                        )
+                        .build())
+                .build();
+    }
+
+    private SendMessage ask_whom(long chat_id){
+        return SendMessage
+                .builder()
+                .chatId(chat_id)
+                .text("Zu wessen gunsten wurde sie durchgeführt?")
+                .replyMarkup(InlineKeyboardMarkup
+                        .builder()
+                        .keyboardRow(
+                                new InlineKeyboardRow(InlineKeyboardButton
+                                        .builder()
+                                        .text("Firuz")
+                                        .callbackData("firuz")
+                                        .build(),
+                                        InlineKeyboardButton
+                                                .builder()
+                                                .text("Nikita")
+                                                .callbackData("nikita")
                                                 .build()
                                 )
                         )
@@ -82,9 +114,11 @@ public class FinanceManager extends W1NC3NTManager{
                 if(call_data.equals("ja")){
                     this.date = "today";
                     return this.ask_who(chat_id);
-                } else if (call_data.equals("nein")) {
+                }else if(call_data.equals("nein")) {
                     this.custom_date = true;
                     return this.ask_date(chat_id);
+                }else{
+                    return this.false_input(chat_id);
                 }
             }
 
@@ -115,6 +149,10 @@ public class FinanceManager extends W1NC3NTManager{
 
         if(this.who == null){
 
+            if(update.hasCallbackQuery()){
+                this.who = update.getCallbackQuery().getData();
+                return this.ask_whom(update.getCallbackQuery().getMessage().getChatId());
+            }
             return this.ask_who(message.getChatId());
         }
 
