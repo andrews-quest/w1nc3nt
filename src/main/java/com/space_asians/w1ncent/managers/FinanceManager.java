@@ -1,4 +1,4 @@
-package com.space_asians.w1ncent;
+package com.space_asians.w1ncent.managers;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
@@ -6,7 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 
-public class FinanceManager {
+public class FinanceManager extends W1NC3NTManager{
 
     public boolean is_engaged = false;
     private SendMessage sm = null;
@@ -24,6 +24,7 @@ public class FinanceManager {
         return this.consume(message);
     }
 
+    @Override
     public SendMessage consume(Message message){
         if(date == null){
             return SendMessage // Create a message object
