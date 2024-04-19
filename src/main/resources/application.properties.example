@@ -1,5 +1,14 @@
 spring.application.name=w1nc3nt
+
+spring.datasource.url=jdbc:mysql://localhost:3306/w1nc3nt
+spring.datasource.username=root
+spring.datasource.password=password
+
+spring.jpa.show-sql=true
+spring.jpa.generate-ddl=true
+spring.jpa.hibernate.ddl.auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+
 telegram.bot.username=
 telegram.bot.test_token=
 telegram.bot.token=
-spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
