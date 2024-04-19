@@ -1,6 +1,7 @@
 package com.space_asians.w1ncent.managers;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -19,14 +20,74 @@ public class FinanceManager extends W1NC3NTManager{
     private String how_much;
     private String for_what;
 
-    public SendMessage initiate(Message message){
+    private boolean custom_date = false;
+
+    public SendMessage initiate(Update update){
         this.is_engaged = true;
-        return this.consume(message);
+        return this.consume(update);
+    }
+
+    private SendMessage ask_date(long chat_id){
+        return SendMessage
+                .builder()
+                .chatId(chat_id)
+                .text("Nennen Sie mir bitte die gewünschte Datum im Format ... oder lassen sie es Leer, falls ...")
+                .build();
+    }
+
+    private SendMessage ask_who(long chat_id){
+        return SendMessage
+                .builder()
+                .chatId(chat_id)
+                .text("Wer ist schuld?")
+                .replyMarkup(InlineKeyboardMarkup
+                        .builder()
+                        .keyboardRow(
+                                new InlineKeyboardRow(InlineKeyboardButton
+                                        .builder()
+                                        .text("Firuz")
+                                        .callbackData("ja")
+                                        .build(),
+                                        InlineKeyboardButton
+                                                .builder()
+                                                .text("Dasha")
+                                                .callbackData("nein")
+                                                .build()
+                                )
+                        )
+                        .build())
+                .build();
     }
 
     @Override
-    public SendMessage consume(Message message){
+    public SendMessage consume(Update update){
+        Message message = null;
+        if(update.hasMessage()){ message = update.getMessage();};
+
+
+
         if(date == null){
+
+            if(this.custom_date == true){
+                this.date = message.getText();
+                this.custom_date = false;
+                return this.ask_who(message.getChatId());
+            }
+
+            if(update.hasCallbackQuery()){
+                String call_data = update.getCallbackQuery().getData();
+                long message_id = update.getCallbackQuery().getMessage().getMessageId();
+                long chat_id = update.getCallbackQuery().getMessage().getChatId();
+
+                if(call_data.equals("ja")){
+                    this.date = "today";
+                    return this.ask_who(chat_id);
+                } else if (call_data.equals("nein")) {
+                    this.custom_date = true;
+                    return this.ask_date(chat_id);
+                }
+            }
+
             return SendMessage // Create a message object
                     .builder()
                     .chatId(message.getChatId())
@@ -52,30 +113,9 @@ public class FinanceManager extends W1NC3NTManager{
 
         }
 
-        if(this.who.equals(null)){
+        if(this.who == null){
 
-            return SendMessage // Create a message object
-                    .builder()
-                    .chatId(message.getChatId())
-                    .text("Wer ist schuld?")
-                    // Set the keyboard markup
-                    .replyMarkup(InlineKeyboardMarkup
-                            .builder()
-                            .keyboardRow(
-                                    new InlineKeyboardRow(InlineKeyboardButton
-                                            .builder()
-                                            .text("Fizuz")
-                                            .callbackData("firuz")
-                                            .build(),
-                                            InlineKeyboardButton
-                                                    .builder()
-                                                    .text("Dasha")
-                                                    .callbackData("dasha")
-                                                    .build()
-                                    )
-                            )
-                            .build())
-                    .build();
+            return this.ask_who(message.getChatId());
         }
 
         return null;
