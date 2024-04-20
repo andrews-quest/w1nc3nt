@@ -270,4 +270,13 @@ public class FinanceManager extends W1NC3NTManager{
         this.how_much = null;
         this.for_what = null;
     }
+
+    public SendMessage check(Update update){
+       String checkMessage = this.transactionsRepository.findAll().toString();
+       return SendMessage
+               .builder()
+               .chatId(update.getMessage().getChatId())
+               .text(checkMessage)
+               .build();
+    }
 }
