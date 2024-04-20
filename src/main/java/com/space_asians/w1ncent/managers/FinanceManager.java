@@ -39,8 +39,11 @@ public class FinanceManager extends W1NC3NTManager{
     // Reply Keyboard Markups
     private ReplyKeyboardMarkup dateMarkup;
     private ReplyKeyboardMarkup whoMarkup;
+    private ReplyKeyboardMarkup whomMarkup;
 
    private void create_markups(){
+
+       // date Markup
 
        List<KeyboardRow> keyboard = new ArrayList<>();
        KeyboardRow row = new KeyboardRow();
@@ -55,6 +58,8 @@ public class FinanceManager extends W1NC3NTManager{
        keyboard.add(row);
        this.dateMarkup = new ReplyKeyboardMarkup(keyboard);
 
+       // who Markup
+
        dateMarkup.setKeyboard(keyboard);
        keyboard = new ArrayList<KeyboardRow>();
        row = new KeyboardRow();
@@ -62,15 +67,35 @@ public class FinanceManager extends W1NC3NTManager{
 
        row.add("Firuz");
        row.add("Dasha");
-       row.add("Dasha");
+       row.add("Nikita");
        keyboard.add(row);
 
        row = new KeyboardRow();
-       row.add("Dasha");
+       row.add("Katya");
+       row.add("Andrii");
        row.add("Beenden");
 
        keyboard.add(row);
        this.whoMarkup = new ReplyKeyboardMarkup(keyboard);
+
+       // whom Markup
+
+       keyboard = new ArrayList<KeyboardRow>();
+       row = new KeyboardRow();
+
+       row.add("Firuz");
+       row.add("Dasha");
+       row.add("Nikita");
+       keyboard.add(row);
+
+       row = new KeyboardRow();
+       row.add("Katya");
+       row.add("Andrii");
+       row.add("Beenden");
+
+
+       keyboard.add(row);
+       this.whomMarkup = new ReplyKeyboardMarkup(keyboard);
    }
 
     public SendMessage initiate(Update update){
@@ -109,22 +134,7 @@ public class FinanceManager extends W1NC3NTManager{
                 .builder()
                 .chatId(chat_id)
                 .text("Zu wessen gunsten wurde sie durchgeführt?")
-                .replyMarkup(InlineKeyboardMarkup
-                        .builder()
-                        .keyboardRow(
-                                new InlineKeyboardRow(InlineKeyboardButton
-                                        .builder()
-                                        .text("Firuz")
-                                        .callbackData("firuz")
-                                        .build(),
-                                        InlineKeyboardButton
-                                                .builder()
-                                                .text("Nikita")
-                                                .callbackData("nikita")
-                                                .build()
-                                )
-                        )
-                        .build())
+                .replyMarkup(whomMarkup)
                 .build();
     }
 
@@ -210,18 +220,18 @@ public class FinanceManager extends W1NC3NTManager{
 
         if(this.who == null){
 
-            if(update.hasCallbackQuery()){
-                this.who = update.getCallbackQuery().getData();
-                return this.ask_whom(update.getCallbackQuery().getMessage().getChatId());
+            if(update.hasMessage()){
+                this.who = update.getMessage().getText();
+                return this.ask_whom(update.getMessage().getChatId());
             }
             return this.ask_who(message.getChatId());
         }
 
         if(this.whom == null){
 
-            if(update.hasCallbackQuery()){
-                this.whom = update.getCallbackQuery().getData();
-                return this.ask_how_much(update.getCallbackQuery().getMessage().getChatId());
+            if(update.hasMessage()){
+                this.whom = update.getMessage().getText();
+                return this.ask_how_much(update.getMessage().getChatId());
             }
             return this.ask_whom(message.getChatId());
         }
