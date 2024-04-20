@@ -8,8 +8,15 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 public class FinanceManager extends W1NC3NTManager{
@@ -29,8 +36,46 @@ public class FinanceManager extends W1NC3NTManager{
 
     private boolean custom_date = false;
 
+    // Reply Keyboard Markups
+    private ReplyKeyboardMarkup dateMarkup;
+    private ReplyKeyboardMarkup whoMarkup;
+
+   private void create_markups(){
+
+       List<KeyboardRow> keyboard = new ArrayList<>();
+       KeyboardRow row = new KeyboardRow();
+
+
+       row.add("Ja");
+       row.add("Nein");
+       keyboard.add(row);
+
+       row = new KeyboardRow();
+       row.add("Beenden");
+       keyboard.add(row);
+       this.dateMarkup = new ReplyKeyboardMarkup(keyboard);
+
+       dateMarkup.setKeyboard(keyboard);
+       keyboard = new ArrayList<KeyboardRow>();
+       row = new KeyboardRow();
+
+
+       row.add("Firuz");
+       row.add("Dasha");
+       row.add("Dasha");
+       keyboard.add(row);
+
+       row = new KeyboardRow();
+       row.add("Dasha");
+       row.add("Beenden");
+
+       keyboard.add(row);
+       this.whoMarkup = new ReplyKeyboardMarkup(keyboard);
+   }
+
     public SendMessage initiate(Update update){
         this.is_engaged = true;
+        this.create_markups();
         return this.consume(update);
     }
 
@@ -55,22 +100,7 @@ public class FinanceManager extends W1NC3NTManager{
                 .builder()
                 .chatId(chat_id)
                 .text("Wer hat die Transaktion durchgeführt?")
-                .replyMarkup(InlineKeyboardMarkup
-                        .builder()
-                        .keyboardRow(
-                                new InlineKeyboardRow(InlineKeyboardButton
-                                        .builder()
-                                        .text("Firuz")
-                                        .callbackData("firuz")
-                                        .build(),
-                                        InlineKeyboardButton
-                                                .builder()
-                                                .text("Dasha")
-                                                .callbackData("dasha")
-                                                .build()
-                                )
-                        )
-                        .build())
+                .replyMarkup(whoMarkup)
                 .build();
     }
 
@@ -118,6 +148,7 @@ public class FinanceManager extends W1NC3NTManager{
         return SendMessage.
                 builder()
                 .chatId(chat_id)
+                .replyMarkup(null)
                 .text("Also die Eintrag ist wie folgend:\n" +
                         "am " + this.date + "\n" +
                         this.who + " -> " + this.whom + "\n" +
@@ -135,6 +166,9 @@ public class FinanceManager extends W1NC3NTManager{
         transactionsRepository.save(transaction);
     }
 
+
+    // Main Function
+
     @Override
     public SendMessage consume(Update update){
         Message message = null;
@@ -144,21 +178,20 @@ public class FinanceManager extends W1NC3NTManager{
 
         if(date == null){
 
-            if(this.custom_date == true){
+            if(this.custom_date){
                 this.date = message.getText();
                 this.custom_date = false;
                 return this.ask_who(message.getChatId());
             }
 
-            if(update.hasCallbackQuery()){
-                String call_data = update.getCallbackQuery().getData();
-                long message_id = update.getCallbackQuery().getMessage().getMessageId();
-                long chat_id = update.getCallbackQuery().getMessage().getChatId();
+            if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/update_finances")){
+                String text = update.getMessage().getText();
+                long chat_id = update.getMessage().getChatId();
 
-                if(call_data.equals("ja")){
+                if(text.equals("Ja")){
                     this.date = "today";
                     return this.ask_who(chat_id);
-                }else if(call_data.equals("nein")) {
+                }else if(text.equals("Nein")) {
                     this.custom_date = true;
                     return this.ask_date(chat_id);
                 }else{
@@ -166,27 +199,11 @@ public class FinanceManager extends W1NC3NTManager{
                 }
             }
 
-            return SendMessage // Create a message object
+            return SendMessage
                     .builder()
                     .chatId(message.getChatId())
                     .text("Fand es heute statt?")
-                    // Set the keyboard markup
-                    .replyMarkup(InlineKeyboardMarkup
-                            .builder()
-                            .keyboardRow(
-                                    new InlineKeyboardRow(InlineKeyboardButton
-                                            .builder()
-                                            .text("Ja")
-                                            .callbackData("ja")
-                                            .build(),
-                                            InlineKeyboardButton
-                                                    .builder()
-                                                    .text("Nein")
-                                                    .callbackData("nein")
-                                                    .build()
-                                    )
-                            )
-                            .build())
+                    .replyMarkup(dateMarkup)
                     .build();
 
         }
