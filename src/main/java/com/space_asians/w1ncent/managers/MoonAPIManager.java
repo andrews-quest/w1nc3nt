@@ -18,14 +18,20 @@ public class MoonAPIManager extends W1NC3NTManager{
     private Response response;
     private String body;
 
+    @Value("${moon_api.x-rapidapi-key}")
+    private String rapidAPIKey;
+
+    @Value("${moon_api.x-rapidapi-host}")
+    private String rapidAPIHost;
+
     @Value("${text.moon_api.failure}")
     private String text_failure;
 
     public SendMessage consume(Update update){
         Request request = new Request.Builder()
                 .url("https://moon-phase.p.rapidapi.com/basic")
-                .addHeader("X-RapidAPI-Key", "7312b6599amsh96040c69a1f02e1p1de824jsndc8c781ac7bd")
-                .addHeader("X-RapidAPI-Host", "moon-phase.p.rapidapi.com")
+                .addHeader("X-RapidAPI-Key", rapidAPIKey)
+                .addHeader("X-RapidAPI-Host", rapidAPIHost)
                 .build();
 
         try {
