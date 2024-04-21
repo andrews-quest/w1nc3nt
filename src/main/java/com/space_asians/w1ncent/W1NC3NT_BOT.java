@@ -39,6 +39,9 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
     private SendMessage sm = null;
     private Message message;
     private String chat_id;
+    @Value("${text.main.deny_group_finances_update}")
+    private String text_deny_group_finances_update;
+
 
     private SendMessage greet(){
         return SendMessage
@@ -48,11 +51,22 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
                 .build();
     }
 
+   private SendMessage deny_group_finances_update(String chat_id){
+        return SendMessage
+                .builder()
+                .chatId(this.chat_id)
+                .text(this.text_deny_group_finances_update)
+                .build();
+   }
+
     private SendMessage handle_commands(Update update){
         String text = update.getMessage().getText();
         if(text.equals("/greet")){
             return this.greet();
         }else if(text.equals("/finances_update")) {
+            if(update.getMessage().getChat().isGroupChat()){
+                return this.deny_group_finances_update(String.valueOf(update.getMessage().getChatId()));
+            }
             this.current_manager = this.financeManager;
             return this.financeManager.initiate(update);
         }else if(text.equals("/finances_check")){
@@ -67,6 +81,7 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
                     .build();
         }
     }
+
 
     @Override
     public void consume(Update update) {
