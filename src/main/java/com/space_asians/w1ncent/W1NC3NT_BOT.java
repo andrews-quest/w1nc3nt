@@ -49,10 +49,10 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
         String text = update.getMessage().getText();
         if(text.equals("/greet")){
             return this.greet();
-        }else if(text.equals("/update_finances")) {
+        }else if(text.equals("/finances_update")) {
             this.current_manager = this.financeManager;
             return this.financeManager.initiate(update);
-        }else if(text.equals("/check_finances")){
+        }else if(text.equals("/finances_check")){
            return this.financeManager.check(update);
         }else{
             return SendMessage

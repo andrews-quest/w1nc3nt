@@ -12,3 +12,13 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 telegram.bot.username=
 telegram.bot.test_token=
 telegram.bot.token=
+
+text.finance.date=Fand es heute statt?
+text.finance.false_input=Tut mir leid, ich kann diese Eingabe nicht erkennen. Bitte, versuchen Sie es nochmal.
+text.finance.ask_date=Nennen Sie mir bitte die gewünschte Datum im Format ... oder lassen sie es Leer, falls ...
+text.finance.who=Wer hat die Transaktion durchgeführt?
+text.finance.whom=Zu wessen gunsten wurde sie durchgeführt?
+text.finance.when=Wie groß war die Transaktion? Nennes Sie bitte die Summe in Euro."
+text.finance.for_what=Wofür wurde es geleistet?
+text.finance.summary
+

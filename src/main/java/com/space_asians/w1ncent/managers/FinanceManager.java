@@ -3,6 +3,7 @@ package com.space_asians.w1ncent.managers;
 import com.space_asians.w1ncent.entities.Transaction;
 import com.space_asians.w1ncent.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -35,6 +36,23 @@ public class FinanceManager extends W1NC3NTManager{
     private String for_what;
 
     private boolean custom_date = false;
+
+    // SendMessage texts
+    @Value("${text.finance.date}")
+    private String text_date;
+    @Value("${text.finance.false_input}")
+    private String text_false_input;
+    @Value("${text.finance.ask_date}")
+    private String text_ask_date;
+    @Value("${text.finance.who}")
+    private String text_who;
+    @Value("${text.finance.whom}")
+    private String text_whom;
+    @Value("${text.finance.how_much}")
+    private String text_how_much;
+    @Value("${text.finance.for_what}")
+    private String text_for_what;
+
 
     // Reply Keyboard Markups
     private ReplyKeyboardMarkup dateMarkup;
@@ -108,7 +126,7 @@ public class FinanceManager extends W1NC3NTManager{
         return SendMessage
                 .builder()
                 .chatId(chat_id)
-                .text("Tut mir leid, ich kann diese Eingabe nicht erkennen. Bitte, versuchen Sie es nochmal.")
+                .text(this.text_false_input)
                 .build();
     }
 
@@ -116,7 +134,7 @@ public class FinanceManager extends W1NC3NTManager{
         return SendMessage
                 .builder()
                 .chatId(chat_id)
-                .text("Nennen Sie mir bitte die gewünschte Datum im Format ... oder lassen sie es Leer, falls ...")
+                .text(this.text_ask_date)
                 .build();
     }
 
@@ -124,7 +142,7 @@ public class FinanceManager extends W1NC3NTManager{
         return SendMessage
                 .builder()
                 .chatId(chat_id)
-                .text("Wer hat die Transaktion durchgeführt?")
+                .text(this.text_who)
                 .replyMarkup(whoMarkup)
                 .build();
     }
@@ -133,7 +151,7 @@ public class FinanceManager extends W1NC3NTManager{
         return SendMessage
                 .builder()
                 .chatId(chat_id)
-                .text("Zu wessen gunsten wurde sie durchgeführt?")
+                .text(this.whom)
                 .replyMarkup(whomMarkup)
                 .build();
     }
@@ -142,7 +160,7 @@ public class FinanceManager extends W1NC3NTManager{
         return SendMessage
                 .builder()
                 .chatId(chat_id)
-                .text("Wie groß war die Transaktion? Nennes Sie bitte die Summe in Euro.")
+                .text(this.text_how_much)
                 .build();
     }
 
@@ -150,7 +168,7 @@ public class FinanceManager extends W1NC3NTManager{
         return SendMessage
                 .builder()
                 .chatId(chat_id)
-                .text("Wofür wurde es geleistet?")
+                .text(this.text_for_what)
                 .build();
     }
 
@@ -194,7 +212,7 @@ public class FinanceManager extends W1NC3NTManager{
                 return this.ask_who(message.getChatId());
             }
 
-            if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/update_finances")){
+            if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
                 String text = update.getMessage().getText();
                 long chat_id = update.getMessage().getChatId();
 
@@ -212,7 +230,7 @@ public class FinanceManager extends W1NC3NTManager{
             return SendMessage
                     .builder()
                     .chatId(message.getChatId())
-                    .text("Fand es heute statt?")
+                    .text(this.text_date)
                     .replyMarkup(dateMarkup)
                     .build();
 
