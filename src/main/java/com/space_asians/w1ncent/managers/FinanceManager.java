@@ -124,54 +124,13 @@ public class FinanceManager extends W1NC3NTManager{
         return this.consume(update);
     }
 
-    private SendMessage false_input(long chat_id){
-        return SendMessage
-                .builder()
-                .chatId(chat_id)
-                .text(this.text_false_input)
-                .build();
-    }
-
-    private SendMessage ask_date(long chat_id){
-        return SendMessage
-                .builder()
-                .chatId(chat_id)
-                .text(this.text_ask_date)
-                .build();
-    }
-
-    private SendMessage ask_who(long chat_id){
-        return SendMessage
-                .builder()
-                .chatId(chat_id)
-                .text(this.text_who)
-                .replyMarkup(whoMarkup)
-                .build();
-    }
-
-    private SendMessage ask_whom(long chat_id){
-        return SendMessage
-                .builder()
-                .chatId(chat_id)
-                .text(this.whom)
-                .replyMarkup(whomMarkup)
-                .build();
-    }
-
-    private SendMessage ask_how_much(long chat_id){
-        return SendMessage
-                .builder()
-                .chatId(chat_id)
-                .text(this.text_how_much)
-                .build();
-    }
-
-    private SendMessage ask_for_what(long chat_id){
-        return SendMessage
-                .builder()
-                .chatId(chat_id)
-                .text(this.text_for_what)
-                .build();
+    private SendMessage respond(long chat_id, String text, ReplyKeyboardMarkup markup){
+       return SendMessage
+               .builder()
+               .chatId(chat_id)
+               .text(text)
+               .replyMarkup(markup)
+               .build();
     }
 
     private SendMessage summary(long chat_id){
@@ -211,7 +170,7 @@ public class FinanceManager extends W1NC3NTManager{
             if(this.custom_date){
                 this.date = message.getText();
                 this.custom_date = false;
-                return this.ask_who(message.getChatId());
+                return this.respond(message.getChatId(), text_who, whoMarkup);
             }
 
             if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
@@ -220,21 +179,16 @@ public class FinanceManager extends W1NC3NTManager{
 
                 if(text.equals("Ja")){
                     this.date = "today";
-                    return this.ask_who(chat_id);
+                    return this.respond(chat_id, text_who, whoMarkup);
                 }else if(text.equals("Nein")) {
                     this.custom_date = true;
-                    return this.ask_date(chat_id);
+                    return this.respond(chat_id, text_ask_date, null);
                 }else{
-                    return this.false_input(chat_id);
+                    return this.respond(chat_id, text_false_input,null);
                 }
             }
 
-            return SendMessage
-                    .builder()
-                    .chatId(message.getChatId())
-                    .text(this.text_date)
-                    .replyMarkup(dateMarkup)
-                    .build();
+            return this.respond(message.getChatId(), text_date, dateMarkup);
 
         }
 
@@ -242,27 +196,27 @@ public class FinanceManager extends W1NC3NTManager{
 
             if(update.hasMessage()){
                 this.who = update.getMessage().getText();
-                return this.ask_whom(update.getMessage().getChatId());
+                return this.respond(update.getMessage().getChatId(), text_whom, whomMarkup);
             }
-            return this.ask_who(message.getChatId());
+            return this.respond(update.getMessage().getChatId(), text_who, whoMarkup);
         }
 
         if(this.whom == null){
 
             if(update.hasMessage()){
                 this.whom = update.getMessage().getText();
-                return this.ask_how_much(update.getMessage().getChatId());
+                return this.respond(update.getMessage().getChatId(), text_how_much, null);
             }
-            return this.ask_whom(message.getChatId());
+            return this.respond(message.getChatId(), text_whom, null);
         }
 
         if(this.how_much == null){
 
             if(update.hasMessage()){
                 this.how_much = update.getMessage().getText();
-                return this.ask_for_what(update.getMessage().getChatId());
+                return this.respond(update.getMessage().getChatId(), text_for_what, null);
             }
-            return this.ask_how_much(message.getChatId());
+            return this.respond(message.getChatId(), text_how_much, null);
         }
 
         if(this.for_what == null){
@@ -273,7 +227,7 @@ public class FinanceManager extends W1NC3NTManager{
                 this.save_to_db();
                 return this.summary(update.getMessage().getChatId());
             }
-            return this.ask_for_what(message.getChatId());
+            return this.respond(message.getChatId(), text_for_what, null);
         }
 
         return null;
