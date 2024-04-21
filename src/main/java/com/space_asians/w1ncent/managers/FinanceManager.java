@@ -1,9 +1,11 @@
 package com.space_asians.w1ncent.managers;
 
 import com.space_asians.w1ncent.entities.Transaction;
+import com.space_asians.w1ncent.repositories.MembersRepository;
 import com.space_asians.w1ncent.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -19,16 +21,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@Service
+@Component
 public class FinanceManager extends W1NC3NTManager{
 
-    private SendMessage sm = null;
-
-    private String[] members = {"Firuz", "Nikita", "Katia", "Dasha", "Andii"};
+    private String[] members = {"Firuz", "Nikita", "Katia", "Dasha", "Andrii"};
 
     private Transaction transaction = new Transaction();
     @Autowired
     private TransactionsRepository transactionsRepository;
+    @Autowired
+    private MembersRepository membersRepository;
     private String date;
     private String who;
     private String whom;
@@ -191,7 +193,7 @@ public class FinanceManager extends W1NC3NTManager{
         this.transaction.setWhom(this.whom);
         this.transaction.setHow_much(Float.parseFloat(this.how_much));
         this.transaction.setFor_what(this.for_what);
-        transactionsRepository.save(transaction);
+        transactionsRepository.save(this.transaction);
     }
 
 
