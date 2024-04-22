@@ -124,14 +124,6 @@ public class FinanceManager extends W1NC3NTManager{
         return this.consume(update);
     }
 
-    private SendMessage respond(long chat_id, String text, ReplyKeyboardMarkup markup){
-       return SendMessage
-               .builder()
-               .chatId(chat_id)
-               .text(text)
-               .replyMarkup(markup)
-               .build();
-    }
 
     private SendMessage summary(long chat_id){
         return SendMessage.
