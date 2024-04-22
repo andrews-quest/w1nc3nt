@@ -17,10 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 public class FinanceManager extends W1NC3NTManager{
@@ -150,7 +147,10 @@ public class FinanceManager extends W1NC3NTManager{
         this.transaction.setHow_much(Float.parseFloat(this.how_much));
         this.transaction.setFor_what(this.for_what);
         transactionsRepository.save(this.transaction);
-    }
+
+       String balance = this.membersRepository.findBalanceByName(this.who);
+
+   }
 
 
     // Main Function

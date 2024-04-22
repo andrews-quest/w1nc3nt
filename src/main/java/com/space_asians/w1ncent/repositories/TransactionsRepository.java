@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface TransactionsRepository extends CrudRepository<Transaction, Integer> {
-    // @Query("SELECT * FROM TRANSACTIONS WHERE WHO=\"Firuz\"")
-    // public List<String> findAllByMember();
+     // @Query("SELECT * FROM TRANSACTIONS WHERE WHO=\"Firuz\"")
+     // public List<String> findAllByMember();
 }
