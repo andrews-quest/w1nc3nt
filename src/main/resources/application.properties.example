@@ -13,6 +13,7 @@ telegram.bot.username=
 telegram.bot.test_token=
 telegram.bot.token=
 
+main.members=
 text.main.deny_group_finances_update=Tut mir leid, liebe Herrin, aber um den group Chat nicht zu überflüssen, anwenden sie den Befehl im privaten Chat mit mir.
 
 text.finance.date=Fand es heute statt?

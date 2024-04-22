@@ -18,13 +18,15 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 @Component
 public class FinanceManager extends W1NC3NTManager{
 
-    private String[] members = {"Firuz", "Nikita", "Katia", "Dasha", "Andrii"};
+    @Value("${main.members}")
+    private String[] members;
 
     private Transaction transaction = new Transaction();
     @Autowired
@@ -61,7 +63,7 @@ public class FinanceManager extends W1NC3NTManager{
     private ReplyKeyboardMarkup whoMarkup;
     private ReplyKeyboardMarkup whomMarkup;
 
-   private void create_markups(){
+   private void create_markups() {
 
        // date Markup
 
@@ -98,24 +100,27 @@ public class FinanceManager extends W1NC3NTManager{
        keyboard.add(row);
        this.whoMarkup = new ReplyKeyboardMarkup(keyboard);
 
-       // whom Markup
+   }
 
-       keyboard = new ArrayList<KeyboardRow>();
-       row = new KeyboardRow();
+   private ReplyKeyboardMarkup create_whom_markup(){
+       List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
+       KeyboardRow row = new KeyboardRow();
 
-       row.add("Firuz");
-       row.add("Dasha");
-       row.add("Nikita");
+       for(String member : Arrays.copyOfRange(this.members, 0, 2)){
+           if(!member.equals(this.who)){row.add(member);};
+       }
+
        keyboard.add(row);
-
        row = new KeyboardRow();
-       row.add("Katya");
-       row.add("Andrii");
+
+       for(String member : Arrays.copyOfRange(this.members, 2, this.members.length)){
+           if(!member.equals(this.who)){row.add(member);};
+       }
+
        row.add("Beenden");
-
-
        keyboard.add(row);
-       this.whomMarkup = new ReplyKeyboardMarkup(keyboard);
+       whomMarkup = new ReplyKeyboardMarkup(keyboard);
+       return whomMarkup;
    }
 
     public SendMessage initiate(Update update){
@@ -171,7 +176,7 @@ public class FinanceManager extends W1NC3NTManager{
 
                 if(text.equals("Ja")){
                     this.date = "today";
-                    return this.respond(chat_id, text_who, whoMarkup);
+                    return this.respond(chat_id, text_who, this.whoMarkup);
                 }else if(text.equals("Nein")) {
                     this.custom_date = true;
                     return this.respond(chat_id, text_ask_date, null);
@@ -180,7 +185,7 @@ public class FinanceManager extends W1NC3NTManager{
                 }
             }
 
-            return this.respond(message.getChatId(), text_date, dateMarkup);
+            return this.respond(message.getChatId(), text_date, this.dateMarkup);
 
         }
 
@@ -188,9 +193,9 @@ public class FinanceManager extends W1NC3NTManager{
 
             if(update.hasMessage()){
                 this.who = update.getMessage().getText();
-                return this.respond(update.getMessage().getChatId(), text_whom, whomMarkup);
+                return this.respond(update.getMessage().getChatId(), text_whom, create_whom_markup());
             }
-            return this.respond(update.getMessage().getChatId(), text_who, whoMarkup);
+            return this.respond(update.getMessage().getChatId(), text_who, this.whoMarkup);
         }
 
         if(this.whom == null){
