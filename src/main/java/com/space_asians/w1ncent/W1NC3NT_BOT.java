@@ -69,8 +69,11 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
             }
             this.current_manager = this.financeManager;
             return this.financeManager.initiate(update);
-        }else if(text.equals("/finances_check")){
-           return this.financeManager.check(update);
+        }else if(text.equals("/finances_check")) {
+            return this.financeManager.check(update);
+        }else if(text.equals("/finances_history")){
+            this.current_manager = this.financeManager;
+            return this.financeManager.history(update);
         }else if(text.equals("/lunar_digest")){
             return this.moonAPIManager.consume(update);
         }else{
@@ -93,8 +96,6 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
             this.current_manager = null;
             this.message = update.getMessage();
             this.chat_id = String.valueOf(message.getChatId());
-
-
             this.sm = handle_commands(update);
         }
 

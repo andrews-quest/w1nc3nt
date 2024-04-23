@@ -25,6 +25,8 @@ public class FinanceManager extends W1NC3NTManager{
     @Value("${main.members}")
     private String[] members;
 
+    private String state = "none";
+
     private Transaction transaction = new Transaction();
     @Autowired
     private TransactionsRepository transactionsRepository;
@@ -53,7 +55,8 @@ public class FinanceManager extends W1NC3NTManager{
     private String text_how_much;
     @Value("${text.finance.for_what}")
     private String text_for_what;
-
+    @Value("${text.finance.history}")
+    private String text_history;
     @Value("${text.finance.check}")
     private String text_finances_check;
 
@@ -102,21 +105,22 @@ public class FinanceManager extends W1NC3NTManager{
 
    }
 
-   private ReplyKeyboardMarkup create_whom_markup(){
+   private ReplyKeyboardMarkup create_who_markup(boolean is_inline, boolean include_all_button, String excluded_member){
        List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
        KeyboardRow row = new KeyboardRow();
-
        for(String member : Arrays.copyOfRange(this.members, 0, 2)){
-           if(!member.equals(this.who)){row.add(member);};
+           if(!member.equals(excluded_member)){row.add(member);};
        }
-
        keyboard.add(row);
+
        row = new KeyboardRow();
-
        for(String member : Arrays.copyOfRange(this.members, 2, this.members.length)){
-           if(!member.equals(this.who)){row.add(member);};
+           if(!member.equals(excluded_member)){row.add(member);};
        }
+       keyboard.add(row);
 
+       row = new KeyboardRow();
+       if(include_all_button){row.add("Alle");};
        row.add("Beenden");
        keyboard.add(row);
        whomMarkup = new ReplyKeyboardMarkup(keyboard);
@@ -167,79 +171,97 @@ public class FinanceManager extends W1NC3NTManager{
         if(update.hasMessage()){ message = update.getMessage();};
 
 
+        if(this.state == "check"){
+            if(date == null){
 
-        if(date == null){
-
-            if(this.custom_date){
-                this.date = message.getText();
-                this.custom_date = false;
-                return this.respond(message.getChatId(), text_who, whoMarkup);
-            }
-
-            if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
-                String text = update.getMessage().getText();
-                long chat_id = update.getMessage().getChatId();
-
-                if(text.equals("Ja")){
-                    this.date = "today";
-                    return this.respond(chat_id, text_who, this.whoMarkup);
-                }else if(text.equals("Nein")) {
-                    this.custom_date = true;
-                    return this.respond(chat_id, text_ask_date, null);
-                }else{
-                    return this.respond(chat_id, text_false_input,null);
+                if(this.custom_date){
+                    this.date = message.getText();
+                    this.custom_date = false;
+                    return this.respond(message.getChatId(), text_who, whoMarkup);
                 }
+
+                if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
+                    String text = update.getMessage().getText();
+                    long chat_id = update.getMessage().getChatId();
+
+                    if(text.equals("Ja")){
+                        this.date = "today";
+                        return this.respond(chat_id, text_who, this.whoMarkup);
+                    }else if(text.equals("Nein")) {
+                        this.custom_date = true;
+                        return this.respond(chat_id, text_ask_date, null);
+                    }else{
+                        return this.respond(chat_id, text_false_input,null);
+                    }
+                }
+
+                return this.respond(message.getChatId(), text_date, this.dateMarkup);
+
             }
 
-            return this.respond(message.getChatId(), text_date, this.dateMarkup);
+            if(this.who == null){
 
-        }
-
-        if(this.who == null){
-
-            if(update.hasMessage()){
-                this.who = update.getMessage().getText();
-                return this.respond(update.getMessage().getChatId(), text_whom, create_whom_markup());
+                if(update.hasMessage()){
+                    this.who = update.getMessage().getText();
+                    return this.respond(update.getMessage().getChatId(), text_whom, create_who_markup(false, false, this.who));
+                }
+                return this.respond(update.getMessage().getChatId(), text_who, this.whoMarkup);
             }
-            return this.respond(update.getMessage().getChatId(), text_who, this.whoMarkup);
-        }
 
-        if(this.whom == null){
+            if(this.whom == null){
 
-            if(update.hasMessage()){
-                this.whom = update.getMessage().getText();
-                return this.respond(update.getMessage().getChatId(), text_how_much, null);
+                if(update.hasMessage()){
+                    this.whom = update.getMessage().getText();
+                    return this.respond(update.getMessage().getChatId(), text_how_much, null);
+                }
+                return this.respond(message.getChatId(), text_whom, null);
             }
-            return this.respond(message.getChatId(), text_whom, null);
-        }
 
-        if(this.how_much == null){
+            if(this.how_much == null){
 
-            if(update.hasMessage()){
-                this.how_much = update.getMessage().getText();
-                return this.respond(update.getMessage().getChatId(), text_for_what, null);
+                if(update.hasMessage()){
+                    this.how_much = update.getMessage().getText();
+                    return this.respond(update.getMessage().getChatId(), text_for_what, null);
+                }
+                return this.respond(message.getChatId(), text_how_much, null);
             }
-            return this.respond(message.getChatId(), text_how_much, null);
+
+            if(this.for_what == null){
+
+                if(update.hasMessage()){
+                    this.for_what = update.getMessage().getText();
+                    this.is_engaged = false;
+                    this.save_to_db();
+                    return this.summary(update.getMessage().getChatId());
+                }
+                return this.respond(message.getChatId(), text_for_what, null);
+            }
+
+            return null;
         }
 
-        if(this.for_what == null){
-
-            if(update.hasMessage()){
-                this.for_what = update.getMessage().getText();
+        if(this.state == "history"){
+            if(this.who != null){
                 this.is_engaged = false;
-                this.save_to_db();
-                return this.summary(update.getMessage().getChatId());
+                return SendMessage
+                        .builder()
+                        .chatId(update.getMessage().getChatId())
+                        .text(this.transactionsRepository.findAll().toString())
+                        .build();
+            }else{
+                // if(Arrays.stream(this.members).anyMatch(update.getMessage().getText() -> update.getMessage().getText());
+                this.who = update.getMessage().getText();
+                // return this.history(update);
             }
-            return this.respond(message.getChatId(), text_for_what, null);
         }
 
         return null;
-
 
     }
 
     @Override
     public void end(){
+        this.state = "none";
         this.is_engaged = false;
         this.date = null;
         this.who = null;
@@ -249,6 +271,7 @@ public class FinanceManager extends W1NC3NTManager{
     }
 
     public SendMessage check(Update update){
+       this.state = "check";
        String text = this.text_finances_check;
        for(String member : this.members){
            String balance = String.valueOf(this.membersRepository.findBalanceByName(member));
@@ -258,6 +281,17 @@ public class FinanceManager extends W1NC3NTManager{
                .builder()
                .chatId(update.getMessage().getChatId())
                .text(text)
+               .build();
+    }
+
+    public SendMessage history(Update update){
+       this.is_engaged = true;
+       this.state = "history";
+       return SendMessage
+               .builder()
+               .chatId(update.getMessage().getChatId())
+               .text(this.text_history)
+               .replyMarkup(this.create_who_markup(true, true, null))
                .build();
     }
 }

@@ -1,7 +1,7 @@
 greet - begrüße die Herrinen 
 about_w1nc3nt - erzähl uns über deine Möglichkeiten
 finances_check - aktuelle Finanzstelle
-finances_history - geschichte
+finances_history - die Geschichte von Transaktionen
 finances_cancel_last - den letzten Eintrag stornieren
 finances_update - neuer Eintrag
 lunar_digest - was ist neu zum Mond?
