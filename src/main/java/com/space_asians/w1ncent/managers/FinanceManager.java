@@ -54,6 +54,9 @@ public class FinanceManager extends W1NC3NTManager{
     @Value("${text.finance.for_what}")
     private String text_for_what;
 
+    @Value("${text.finance.check}")
+    private String text_finances_check;
+
 
     // Reply Keyboard Markups
     private ReplyKeyboardMarkup dateMarkup;
@@ -246,11 +249,15 @@ public class FinanceManager extends W1NC3NTManager{
     }
 
     public SendMessage check(Update update){
-       String checkMessage = this.transactionsRepository.findAll().toString();
+       String text = this.text_finances_check;
+       for(String member : this.members){
+           String balance = String.valueOf(this.membersRepository.findBalanceByName(member));
+           text += String.format("\n %s : %s", member, balance);
+       }
        return SendMessage
                .builder()
                .chatId(update.getMessage().getChatId())
-               .text(checkMessage)
+               .text(text)
                .build();
     }
 }
