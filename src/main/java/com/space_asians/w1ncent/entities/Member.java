@@ -13,7 +13,7 @@ public class Member {
     private int id;
 
     @Column
-    int name;
+    private String name;
 
     @Column
     int balance;

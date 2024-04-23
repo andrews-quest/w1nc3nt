@@ -90,7 +90,7 @@ public class FinanceManager extends W1NC3NTManager{
        keyboard.add(row);
 
        row = new KeyboardRow();
-       row.add("Katya");
+       row.add("Katia");
        row.add("Andrii");
        row.add("Beenden");
 
@@ -148,8 +148,11 @@ public class FinanceManager extends W1NC3NTManager{
         this.transaction.setFor_what(this.for_what);
         transactionsRepository.save(this.transaction);
 
-       String balance = this.membersRepository.findBalanceByName(this.who);
+        int balance = this.membersRepository.findBalanceByName(this.who) + Integer.parseInt(this.how_much);
+        this.membersRepository.updateBalance(this.who, balance);
 
+        balance = this.membersRepository.findBalanceByName(this.whom) - Integer.parseInt(this.how_much);
+        this.membersRepository.updateBalance(this.whom, balance);
    }
 
 
