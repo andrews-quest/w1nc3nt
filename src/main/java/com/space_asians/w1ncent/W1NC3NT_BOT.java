@@ -74,6 +74,9 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
         }else if(text.equals("/finances_history")){
             this.current_manager = this.financeManager;
             return this.financeManager.history(update);
+        }else if(text.equals("/finances_cancel_last")){
+            this.current_manager = this.financeManager;
+            return this.financeManager.cancel_last(update);
         }else if(text.equals("/lunar_digest")){
             return this.moonAPIManager.consume(update);
         }else{

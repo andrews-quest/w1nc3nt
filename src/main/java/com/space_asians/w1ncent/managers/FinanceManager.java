@@ -6,15 +6,10 @@ import com.space_asians.w1ncent.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.*;
@@ -63,10 +58,17 @@ public class FinanceManager extends W1NC3NTManager{
     private String text_error;
     @Value("${text.finance.exit}")
     private String text_exit;
+    @Value("${text.finance.cancel}")
+    private String text_cancel;
+    @Value("${text.finance.cancel.yes}")
+    private String text_cancel_yes;
+    @Value("${text.finance.cancel.no}")
+    private String text_cancel_no;
+
 
 
     // Reply Keyboard Markups
-    private ReplyKeyboardMarkup dateMarkup;
+    private ReplyKeyboardMarkup YesNoMarkup;
     private ReplyKeyboardMarkup whoMarkup;
     private ReplyKeyboardMarkup whomMarkup;
 
@@ -74,25 +76,8 @@ public class FinanceManager extends W1NC3NTManager{
 
        // date Markup
 
-       List<KeyboardRow> keyboard = new ArrayList<>();
+       List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
        KeyboardRow row = new KeyboardRow();
-
-
-       row.add("Ja");
-       row.add("Nein");
-       keyboard.add(row);
-
-       row = new KeyboardRow();
-       row.add("Beenden");
-       keyboard.add(row);
-       this.dateMarkup = new ReplyKeyboardMarkup(keyboard);
-
-       // who Markup
-
-       dateMarkup.setKeyboard(keyboard);
-       keyboard = new ArrayList<KeyboardRow>();
-       row = new KeyboardRow();
-
 
        row.add("Firuz");
        row.add("Dasha");
@@ -107,6 +92,22 @@ public class FinanceManager extends W1NC3NTManager{
        keyboard.add(row);
        this.whoMarkup = new ReplyKeyboardMarkup(keyboard);
 
+   }
+
+   private ReplyKeyboardMarkup create_yes_no_markup(boolean has_end_option){
+       List<KeyboardRow> keyboard = new ArrayList<>();
+       KeyboardRow row = new KeyboardRow();
+
+       row.add("Ja");
+       row.add("Nein");
+       keyboard.add(row);
+       row = new KeyboardRow();
+       if(has_end_option){
+           row.add("Beenden");
+           keyboard.add(row);
+       }
+       YesNoMarkup = new ReplyKeyboardMarkup(keyboard);
+       return YesNoMarkup;
    }
 
    private ReplyKeyboardMarkup create_who_markup(boolean is_inline, boolean include_all_button, String excluded_member){
@@ -151,7 +152,7 @@ public class FinanceManager extends W1NC3NTManager{
 
     }
 
-    private void save_to_db(){
+    private void db_save(){
         this.transaction.setWhen(this.date);
         this.transaction.setWho(this.who);
         this.transaction.setWhom(this.whom);
@@ -159,11 +160,23 @@ public class FinanceManager extends W1NC3NTManager{
         this.transaction.setFor_what(this.for_what);
         transactionsRepository.save(this.transaction);
 
-        int balance = this.membersRepository.findBalanceByName(this.who) + Integer.parseInt(this.how_much);
+        int balance = this.membersRepository.findBalanceByName(this.who) - Integer.parseInt(this.how_much);
         this.membersRepository.updateBalance(this.who, balance);
 
-        balance = this.membersRepository.findBalanceByName(this.whom) - Integer.parseInt(this.how_much);
+        balance = this.membersRepository.findBalanceByName(this.whom) + Integer.parseInt(this.how_much);
         this.membersRepository.updateBalance(this.whom, balance);
+   }
+
+   private void db_restore_prev_balance(){
+       int last_transaction = (int) this.transactionsRepository.count();
+       this.who = this.transactionsRepository.findById(last_transaction).orElse(null).getWho();
+       this.whom = this.transactionsRepository.findById(last_transaction).orElse(null).getWhom();
+       float how_much = this.transactionsRepository.findById(last_transaction).orElse(null).getHow_much();
+       float who_balance = this.membersRepository.findBalanceByName(this.who);
+       float whom_balance = this.membersRepository.findBalanceByName(this.whom);
+       this.membersRepository.updateBalance(this.who, who_balance+how_much);
+       this.membersRepository.updateBalance(this.whom, whom_balance-how_much);
+       this.transactionsRepository.deleteById(last_transaction);
    }
 
 
@@ -211,7 +224,7 @@ public class FinanceManager extends W1NC3NTManager{
                     }
                 }
 
-                return this.respond(message.getChatId(), text_date, this.dateMarkup);
+                return this.respond(message.getChatId(), text_date, this.create_yes_no_markup(true));
 
             }
 
@@ -247,7 +260,7 @@ public class FinanceManager extends W1NC3NTManager{
                 if(update.hasMessage()){
                     this.for_what = update.getMessage().getText();
                     this.is_engaged = false;
-                    this.save_to_db();
+                    this.db_save();
                     return this.summary(update.getMessage().getChatId());
                 }
                 return this.respond(message.getChatId(), text_for_what, null);
@@ -267,6 +280,31 @@ public class FinanceManager extends W1NC3NTManager{
                 // if(Arrays.stream(this.members).anyMatch(update.getMessage().getText() -> update.getMessage().getText());
 
                 // return this.history(update);
+        }
+
+        if(this.state == "cancel"){
+            if(update.getMessage().getText().equalsIgnoreCase("ja")){
+                this.end();
+                this.db_restore_prev_balance();
+                return SendMessage
+                        .builder()
+                        .chatId(update.getMessage().getChatId())
+                        .text(this.text_cancel_yes)
+                        .build();
+            }else if (update.getMessage().getText().equalsIgnoreCase("nein")){
+                this.end();
+                return SendMessage
+                        .builder()
+                        .chatId(update.getMessage().getChatId())
+                        .text(this.text_cancel_no)
+                        .build();
+            }else{
+                return SendMessage
+                        .builder()
+                        .chatId(update.getMessage().getChatId())
+                        .text(this.text_false_input)
+                        .build();
+            }
         }
 
         this.end();
@@ -311,6 +349,17 @@ public class FinanceManager extends W1NC3NTManager{
                .chatId(update.getMessage().getChatId())
                .text(this.text_history)
                .replyMarkup(this.create_who_markup(true, true, null))
+               .build();
+    }
+
+    public SendMessage cancel_last(Update update){
+       this.is_engaged = true;
+       this.state = "cancel";
+       return SendMessage
+               .builder()
+               .chatId(update.getMessage().getChatId())
+               .text(this.text_cancel)
+               .replyMarkup(this.create_yes_no_markup(false))
                .build();
     }
 }

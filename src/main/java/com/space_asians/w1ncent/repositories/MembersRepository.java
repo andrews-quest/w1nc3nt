@@ -23,6 +23,6 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
 
     @Modifying
     @Query(value = "UPDATE Member m set m.balance=?2 where m.name=?1")
-    public void updateBalance(String name, int balance);
+    public void updateBalance(String name, float balance);
 
 }

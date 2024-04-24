@@ -16,5 +16,5 @@ public class Member {
     private String name;
 
     @Column
-    int balance;
+    float balance;
 }
