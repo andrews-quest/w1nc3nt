@@ -61,6 +61,8 @@ public class FinanceManager extends W1NC3NTManager{
     private String text_finances_check;
     @Value("${text.error}")
     private String text_error;
+    @Value("${text.finance.exit}")
+    private String text_exit;
 
 
     // Reply Keyboard Markups
@@ -170,7 +172,20 @@ public class FinanceManager extends W1NC3NTManager{
     @Override
     public SendMessage consume(Update update){
         Message message = null;
-        if(update.hasMessage()){ message = update.getMessage();};
+        String text = null;
+        if(update.hasMessage()){
+            message = update.getMessage();
+            text = message.getText();
+        };
+
+        if(text.equals("Beenden") || text.equals("End")){
+            this.end();
+            return SendMessage
+                    .builder()
+                    .chatId(message.getChatId())
+                    .text(this.text_exit)
+                    .build();
+        }
 
 
         if(this.state == "check"){
@@ -183,7 +198,6 @@ public class FinanceManager extends W1NC3NTManager{
                 }
 
                 if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
-                    String text = update.getMessage().getText();
                     long chat_id = update.getMessage().getChatId();
 
                     if(text.equals("Ja")){
