@@ -59,6 +59,8 @@ public class FinanceManager extends W1NC3NTManager{
     private String text_history;
     @Value("${text.finance.check}")
     private String text_finances_check;
+    @Value("${text.error}")
+    private String text_error;
 
 
     // Reply Keyboard Markups
@@ -236,26 +238,29 @@ public class FinanceManager extends W1NC3NTManager{
                 }
                 return this.respond(message.getChatId(), text_for_what, null);
             }
-
-            return null;
         }
 
         if(this.state == "history"){
-            if(this.who != null){
-                this.is_engaged = false;
-                return SendMessage
-                        .builder()
-                        .chatId(update.getMessage().getChatId())
-                        .text(this.transactionsRepository.findAll().toString())
-                        .build();
-            }else{
+            this.is_engaged = false;
+            this.who = update.getMessage().getText();
+            return SendMessage
+                    .builder()
+                    .chatId(update.getMessage().getChatId())
+                    .text(this.transactionsRepository.findAll().toString())
+                    .build();
+
+
                 // if(Arrays.stream(this.members).anyMatch(update.getMessage().getText() -> update.getMessage().getText());
-                this.who = update.getMessage().getText();
+
                 // return this.history(update);
-            }
         }
 
-        return null;
+        this.end();
+        return SendMessage
+                .builder()
+                .chatId(message.getChatId())
+                .text(this.text_error)
+                .build();
 
     }
 

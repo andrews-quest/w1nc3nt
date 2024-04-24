@@ -30,3 +30,5 @@ text.moon_api.failure=Tut mir leid, aber etwas ist mit MoonAPI schiffgelaufen.
 text.moon_api.basic_moonapi_responce=Ihr aktueller Digest über den Mond, meine Herrinen:\nMondphase: %s\nStufe: %s\nDer nächste volle Mond in %s Tage\nDer nächste neue Mond in %s Tage
 moon_api.x-rapidapi-key=
 moon_api.x-rapidapi-host=
+
+text.error=Diese Nachricht soll nie auftauchen. Etwas ist schiffgegangen.
