@@ -178,7 +178,7 @@ public class FinanceManager extends W1NC3NTManager{
             text = message.getText();
         };
 
-        if(text.equals("Beenden") || text.equals("End")){
+        if(text.equalsIgnoreCase("Beenden") || text.equalsIgnoreCase("End")){
             this.end();
             return SendMessage
                     .builder()
@@ -200,10 +200,10 @@ public class FinanceManager extends W1NC3NTManager{
                 if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
                     long chat_id = update.getMessage().getChatId();
 
-                    if(text.equals("Ja")){
+                    if(text.equalsIgnoreCase("Ja")){
                         this.date = "today";
                         return this.respond(chat_id, text_who, this.whoMarkup);
-                    }else if(text.equals("Nein")) {
+                    }else if(text.equalsIgnoreCase("Nein")) {
                         this.custom_date = true;
                         return this.respond(chat_id, text_ask_date, null);
                     }else{
