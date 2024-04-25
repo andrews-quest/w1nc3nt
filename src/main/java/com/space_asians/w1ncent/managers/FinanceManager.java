@@ -64,6 +64,8 @@ public class FinanceManager extends W1NC3NTManager{
     private String text_cancel_yes;
     @Value("${text.finance.cancel.no}")
     private String text_cancel_no;
+    @Value("${text.error.db}")
+    private String text_error_db;
 
 
 
@@ -160,24 +162,32 @@ public class FinanceManager extends W1NC3NTManager{
         this.transaction.setFor_what(this.for_what);
         transactionsRepository.save(this.transaction);
 
-        int balance = this.membersRepository.findBalanceByName(this.who) - Integer.parseInt(this.how_much);
+        float balance = this.membersRepository.findBalanceByName(this.who) - Integer.parseInt(this.how_much);
         this.membersRepository.updateBalance(this.who, balance);
 
         balance = this.membersRepository.findBalanceByName(this.whom) + Integer.parseInt(this.how_much);
         this.membersRepository.updateBalance(this.whom, balance);
    }
 
-   private void db_restore_prev_balance(){
-       int last_transaction = (int) this.transactionsRepository.count();
-       this.who = this.transactionsRepository.findById(last_transaction).orElse(null).getWho();
-       this.whom = this.transactionsRepository.findById(last_transaction).orElse(null).getWhom();
-       float how_much = this.transactionsRepository.findById(last_transaction).orElse(null).getHow_much();
-       float who_balance = this.membersRepository.findBalanceByName(this.who);
-       float whom_balance = this.membersRepository.findBalanceByName(this.whom);
-       this.membersRepository.updateBalance(this.who, who_balance+how_much);
-       this.membersRepository.updateBalance(this.whom, whom_balance-how_much);
-       this.transactionsRepository.deleteById(last_transaction);
+   private boolean db_restore_prev_balance(){
+       try {
+           int last_transaction = (int) this.transactionsRepository.count();
+           this.who = this.transactionsRepository.findById(last_transaction).orElse(null).getWho();
+           this.whom = this.transactionsRepository.findById(last_transaction).orElse(null).getWhom();
+           float how_much = this.transactionsRepository.findById(last_transaction).orElse(null).getHow_much();
+           float who_balance = this.membersRepository.findBalanceByName(this.who);
+           float whom_balance = this.membersRepository.findBalanceByName(this.whom);
+           this.membersRepository.updateBalance(this.who, who_balance + how_much);
+           this.membersRepository.updateBalance(this.whom, whom_balance - how_much);
+           this.transactionsRepository.deleteById(last_transaction);
+           return true;
+       }catch (Exception e){
+           System.out.println(e);
+           return false;
+       }
    }
+
+
 
 
     // Main Function
@@ -283,37 +293,21 @@ public class FinanceManager extends W1NC3NTManager{
         }
 
         if(this.state == "cancel"){
+            this.end();
             if(update.getMessage().getText().equalsIgnoreCase("ja")){
-                this.end();
-                this.db_restore_prev_balance();
-                return SendMessage
-                        .builder()
-                        .chatId(update.getMessage().getChatId())
-                        .text(this.text_cancel_yes)
-                        .build();
+                if(this.db_restore_prev_balance()){
+                    return respond(message.getChatId(), this.text_cancel_yes, null);
+                }else{
+                    return respond(message.getChatId(), this.text_error_db, null);
+                }
             }else if (update.getMessage().getText().equalsIgnoreCase("nein")){
-                this.end();
-                return SendMessage
-                        .builder()
-                        .chatId(update.getMessage().getChatId())
-                        .text(this.text_cancel_no)
-                        .build();
+                return respond(message.getChatId(), this.text_cancel_no, null);
             }else{
-                return SendMessage
-                        .builder()
-                        .chatId(update.getMessage().getChatId())
-                        .text(this.text_false_input)
-                        .build();
+                return respond(message.getChatId(), this.text_false_input, null);
             }
         }
-
         this.end();
-        return SendMessage
-                .builder()
-                .chatId(message.getChatId())
-                .text(this.text_error)
-                .build();
-
+        return respond(message.getChatId(), this.text_error, null);
     }
 
     @Override

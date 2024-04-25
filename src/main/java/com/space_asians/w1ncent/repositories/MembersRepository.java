@@ -19,7 +19,7 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     // public List<String> findBalance;
 
     @Query(value = "SELECT balance FROM members WHERE `name` = ?1", nativeQuery = true)
-    public int findBalanceByName(String name);
+    public float findBalanceByName(String name);
 
     @Modifying
     @Query(value = "UPDATE Member m set m.balance=?2 where m.name=?1")

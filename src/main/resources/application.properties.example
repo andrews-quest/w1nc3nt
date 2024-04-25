@@ -36,3 +36,4 @@ moon_api.x-rapidapi-key=
 moon_api.x-rapidapi-host=
 
 text.error=Diese Nachricht soll nie auftauchen. Etwas ist schiffgegangen.
+text.error.db=Etwas mit meinem Datenbank ist leider schiffgelaufen. Wenden Sie bitte an meinen Schöpfer.
