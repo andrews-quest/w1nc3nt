@@ -145,13 +145,7 @@ public class FinanceManager extends W1NC3NTManager{
 
 
     private SendMessage summary(long chat_id){
-        return SendMessage.
-                builder()
-                .chatId(chat_id)
-                .replyMarkup(null)
-                .text(this.text_summary + this.short_format(false))
-                .build();
-
+        return respond(chat_id, this.text_summary + this.short_format(false), null);
     }
 
     private String short_format(boolean date_first){
@@ -179,15 +173,15 @@ public class FinanceManager extends W1NC3NTManager{
 
    private boolean db_restore_prev_balance(){
        try {
-           int last_transaction = (int) this.transactionsRepository.count();
-           this.who = this.transactionsRepository.findById(last_transaction).orElse(null).getWho();
-           this.whom = this.transactionsRepository.findById(last_transaction).orElse(null).getWhom();
-           float how_much = this.transactionsRepository.findById(last_transaction).orElse(null).getHow_much();
+           this.transaction = this.transactionsRepository.findTopByOrderByIdDesc();
+           this.who = this.transaction.getWho();
+           this.whom = this.transaction.getWhom();
+           float how_much = this.transaction.getHow_much();
            float who_balance = this.membersRepository.findBalanceByName(this.who);
            float whom_balance = this.membersRepository.findBalanceByName(this.whom);
            this.membersRepository.updateBalance(this.who, who_balance + how_much);
            this.membersRepository.updateBalance(this.whom, whom_balance - how_much);
-           this.transactionsRepository.deleteById(last_transaction);
+           this.transactionsRepository.deleteById(this.transaction.getId());
            return true;
        }catch (Exception e){
            System.out.println(e);
@@ -211,11 +205,7 @@ public class FinanceManager extends W1NC3NTManager{
 
         if(text.equalsIgnoreCase("Beenden") || text.equalsIgnoreCase("End")){
             this.end();
-            return SendMessage
-                    .builder()
-                    .chatId(message.getChatId())
-                    .text(this.text_exit)
-                    .build();
+            return respond(message.getChatId(), this.text_exit, null);
         }
 
 
@@ -288,15 +278,8 @@ public class FinanceManager extends W1NC3NTManager{
         if(this.state == "history"){
             this.is_engaged = false;
             this.who = update.getMessage().getText();
-            return SendMessage
-                    .builder()
-                    .chatId(update.getMessage().getChatId())
-                    .text(this.transactionsRepository.findAll().toString())
-                    .build();
-
-
+            return respond(update.getMessage().getChatId(),this.transactionsRepository.findAll().toString(), null);
                 // if(Arrays.stream(this.members).anyMatch(update.getMessage().getText() -> update.getMessage().getText());
-
                 // return this.history(update);
         }
 
@@ -322,6 +305,7 @@ public class FinanceManager extends W1NC3NTManager{
     @Override
     public void end(){
         this.state = "none";
+        this.transaction = new Transaction();
         this.is_engaged = false;
         this.date = null;
         this.who = null;
@@ -337,32 +321,22 @@ public class FinanceManager extends W1NC3NTManager{
            String balance = String.valueOf(this.membersRepository.findBalanceByName(member));
            text += String.format("\n %s : %s", member, balance);
        }
-       return SendMessage
-               .builder()
-               .chatId(update.getMessage().getChatId())
-               .text(text)
-               .build();
+       return respond(update.getMessage().getChatId(), text, null);
     }
 
     public SendMessage history(Update update){
        this.is_engaged = true;
        this.state = "history";
-       return SendMessage
-               .builder()
-               .chatId(update.getMessage().getChatId())
-               .text(this.text_history)
-               .replyMarkup(this.create_who_markup(true, true, null))
-               .build();
+       return respond(update.getMessage().getChatId(),
+               this.text_history,
+               this.create_who_markup(true, true, null));
     }
 
     public SendMessage cancel_last(Update update){
        this.is_engaged = true;
        this.state = "cancel";
-       return SendMessage
-               .builder()
-               .chatId(update.getMessage().getChatId())
-               .text(this.text_cancel)
-               .replyMarkup(this.create_yes_no_markup(false))
-               .build();
+       return respond(update.getMessage().getChatId(),
+               this.text_cancel,
+               this.create_yes_no_markup(false));
     }
 }
