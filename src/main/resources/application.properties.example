@@ -23,12 +23,14 @@ text.finance.who=Wer soll den Bilanz abgleichen?
 text.finance.whom=Zu wessen gunsten wurde sie durchgeführt?
 text.finance.how_much =Wie groß war die Transaktion? Nennes Sie bitte die Summe in Euro."
 text.finance.for_what=Wofür wurde es geleistet?
-text.finance.summary
-text.finance.check=Der aktuelle Bilanz in € ist wie folgend:
+text.finance.summary=Also die Eintrag ist:
+text.finance.check=Der aktuelle Bilanz in Euro ist wie folgend:
+text.finance.history=Für welche Teilnehmer soll ich die finanzielle Geschichte abrufen?
 text.finance.cancel=Sind Sie sicher, dass Sie die letze Operation ( ... ) widerrufen wollen?
 text.finance.cancel.yes=Es ist erledigt.
 text.finance.cancel.no=Keine Sorgen, alles ist unverändert geblieben.
 text.finance.exit=Sie haben die Operation abgebrochen.
+
 
 text.moon_api.failure=Tut mir leid, aber etwas ist mit MoonAPI schiffgelaufen.
 text.moon_api.basic_moonapi_responce=Ihr aktueller Digest über den Mond, meine Herrinen:\nMondphase: %s\nStufe: %s\nDer nächste volle Mond in %s Tage\nDer nächste neue Mond in %s Tage

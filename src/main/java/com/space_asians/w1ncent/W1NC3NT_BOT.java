@@ -68,7 +68,7 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
                 return this.deny_group_finances_update(String.valueOf(update.getMessage().getChatId()));
             }
             this.current_manager = this.financeManager;
-            return this.financeManager.initiate(update);
+            return this.financeManager.update(update);
         }else if(text.equals("/finances_check")) {
             return this.financeManager.check(update);
         }else if(text.equals("/finances_history")){

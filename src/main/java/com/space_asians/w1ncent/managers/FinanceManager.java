@@ -66,6 +66,8 @@ public class FinanceManager extends W1NC3NTManager{
     private String text_cancel_no;
     @Value("${text.error.db}")
     private String text_error_db;
+    @Value("${text.finance.summary}")
+    private String text_summary;
 
 
 
@@ -134,8 +136,9 @@ public class FinanceManager extends W1NC3NTManager{
        return whomMarkup;
    }
 
-    public SendMessage initiate(Update update){
+    public SendMessage update(Update update){
         this.is_engaged = true;
+        this.state = "update";
         this.create_markups();
         return this.consume(update);
     }
@@ -146,12 +149,17 @@ public class FinanceManager extends W1NC3NTManager{
                 builder()
                 .chatId(chat_id)
                 .replyMarkup(null)
-                .text("Also die Eintrag ist wie folgend:\n" +
-                        "am " + this.date + "\n" +
-                        this.who + " -> " + this.whom + "\n" +
-                        this.how_much + " für " + this.for_what)
+                .text(this.text_summary + this.short_format(false))
                 .build();
 
+    }
+
+    private String short_format(boolean date_first){
+       if(date_first){
+           return String.format("%s %s -> %s %s für %s", this.date, this.who, this.whom, this.how_much, this.for_what);
+       }else{
+           return String.format("%s -> %s %s für %s am %s", this.who, this.whom, this.how_much, this.for_what, this.date);
+       }
     }
 
     private void db_save(){
@@ -162,10 +170,10 @@ public class FinanceManager extends W1NC3NTManager{
         this.transaction.setFor_what(this.for_what);
         transactionsRepository.save(this.transaction);
 
-        float balance = this.membersRepository.findBalanceByName(this.who) - Integer.parseInt(this.how_much);
+        float balance = this.membersRepository.findBalanceByName(this.who) - Float.parseFloat(this.how_much);
         this.membersRepository.updateBalance(this.who, balance);
 
-        balance = this.membersRepository.findBalanceByName(this.whom) + Integer.parseInt(this.how_much);
+        balance = this.membersRepository.findBalanceByName(this.whom) + Float.parseFloat(this.how_much);
         this.membersRepository.updateBalance(this.whom, balance);
    }
 
@@ -211,7 +219,7 @@ public class FinanceManager extends W1NC3NTManager{
         }
 
 
-        if(this.state == "check"){
+        if(this.state == "update"){
             if(date == null){
 
                 if(this.custom_date){
@@ -306,6 +314,7 @@ public class FinanceManager extends W1NC3NTManager{
                 return respond(message.getChatId(), this.text_false_input, null);
             }
         }
+
         this.end();
         return respond(message.getChatId(), this.text_error, null);
     }
