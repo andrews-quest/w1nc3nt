@@ -298,7 +298,15 @@ public class FinanceManager extends W1NC3NTManager{
             this.is_engaged = false;
             this.who = update.getMessage().getText();
             String responce = null;
-            for (Transaction transaction : this.transactionsRepository.findAll()){
+            Iterable<Transaction> transactions;
+            if(this.who.equalsIgnoreCase("Alle")){
+                transactions = this.transactionsRepository.findAll();
+            }else if(Arrays.stream(this.members).toList().contains(this.who)){
+                transactions = this.transactionsRepository.findHistory(this.who);
+            }else{
+                return respond(message.getChatId(), this.text_false_input, null);
+            }
+            for (Transaction transaction : transactions){
                 responce += short_format_simple_date(true,
                         transaction.getWhen(),
                         transaction.getWho(),

@@ -16,4 +16,9 @@ public interface TransactionsRepository extends CrudRepository<Transaction, Inte
      // public List<String> findAllByMember();
 
     public Transaction findTopByOrderByIdDesc();
+
+    public Iterable<Transaction> findAllByWho(String who);
+
+    @Query(value = "SELECT * FROM transactions WHERE who= ?1 OR whom=?1", nativeQuery = true)
+    public Iterable<Transaction> findHistory(String member);
 }
