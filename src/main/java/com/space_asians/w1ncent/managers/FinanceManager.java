@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Component
@@ -145,14 +146,31 @@ public class FinanceManager extends W1NC3NTManager{
 
 
     private SendMessage summary(long chat_id){
-        return respond(chat_id, this.text_summary + this.short_format(false), null);
+        return respond(chat_id,
+                this.text_summary + this.short_format_simple_date(false,
+                        this.date,
+                        this.who,
+                        this.whom,
+                        Float.parseFloat(this.how_much),
+                        this.for_what),
+                null);
     }
 
-    private String short_format(boolean date_first){
-       if(date_first){
-           return String.format("%s %s -> %s %s für %s", this.date, this.who, this.whom, this.how_much, this.for_what);
+    private String short_format(boolean date_first, String date, String who, String whom, float how_much, String for_what){
+        if (date_first) {
+            return String.format("%s %s -> %s %s für %s", date, who, whom, how_much, for_what);
+        } else {
+            return String.format("%s -> %s %s für %s am %s", who, whom, how_much, for_what, date);
+        }
+    }
+
+    private String short_format_simple_date(boolean date_first, String date, String who, String whom, float how_much, String for_what){
+       if(date == java.time.ZonedDateTime.now().toLocalDate().toString()) {
+            return short_format(date_first, "heute", who, whom, how_much, for_what);
+       }else if(date == java.time.ZonedDateTime.now().toLocalDate().minusDays(1).toString()){
+            return short_format(date_first, "gestern", who, whom, how_much, for_what);
        }else{
-           return String.format("%s -> %s %s für %s am %s", this.who, this.whom, this.how_much, this.for_what, this.date);
+           return short_format(date_first, date, who, whom, how_much, for_what);
        }
     }
 
@@ -222,7 +240,7 @@ public class FinanceManager extends W1NC3NTManager{
                     long chat_id = update.getMessage().getChatId();
 
                     if(text.equalsIgnoreCase("Ja")){
-                        this.date = "today";
+                        this.date = String.valueOf(java.time.ZonedDateTime.now().toLocalDate());
                         return this.respond(chat_id, text_who, this.whoMarkup);
                     }else if(text.equalsIgnoreCase("Nein")) {
                         this.custom_date = true;
