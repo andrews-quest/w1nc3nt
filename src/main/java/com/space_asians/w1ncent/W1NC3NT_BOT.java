@@ -1,6 +1,7 @@
 package com.space_asians.w1ncent;
 
 import com.space_asians.w1ncent.managers.FinanceManager;
+import com.space_asians.w1ncent.managers.MainManager;
 import com.space_asians.w1ncent.managers.MoonAPIManager;
 import com.space_asians.w1ncent.managers.W1NC3NTManager;
 import jakarta.annotation.PostConstruct;
@@ -30,47 +31,27 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
         this.telegramClient = new OkHttpTelegramClient(token);
     }
     private TelegramClient telegramClient;
+
+    // Managers
     private W1NC3NTManager current_manager;
     @Autowired
     private FinanceManager financeManager;
     @Autowired
     private MoonAPIManager moonAPIManager;
+    @Autowired
+    private MainManager mainManager;
 
     private SendMessage sm = null;
     private Message message;
     private String chat_id;
-    @Value("${text.main.greeting}")
-    private String text_greeting;
-    @Value("${text.main.deny_group_finances_update}")
-    private String text_deny_group_finances_update;
-    @Value("${text.main.unknown_command}")
-    private String text_unknown_command;
-
-
-    private SendMessage greet(){
-        return SendMessage
-                .builder()
-                .chatId(this.chat_id)
-                .text(this.text_greeting)
-                .build();
-    }
-
-   private SendMessage deny_group_finances_update(String chat_id){
-        return SendMessage
-                .builder()
-                .chatId(this.chat_id)
-                .text(this.text_deny_group_finances_update)
-                .build();
-   }
 
     private SendMessage handle_commands(Update update){
         String text = update.getMessage().getText();
         if(text.equals("/greet")){
-            return this.greet();
-        }else if(text.equals("/finances_update")) {
-            if(update.getMessage().getChat().isGroupChat()){
-                return this.deny_group_finances_update(String.valueOf(update.getMessage().getChatId()));
-            }
+            return this.mainManager.greet(update);
+        }else if(text.equals("/about_w1nc3nt")){
+            return this.mainManager.about(update);
+        }if(text.equals("/finances_update")) {
             this.current_manager = this.financeManager;
             return this.financeManager.update(update);
         }else if(text.equals("/finances_check")) {
@@ -84,11 +65,7 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
         }else if(text.equals("/lunar_digest")){
             return this.moonAPIManager.consume(update);
         }else{
-            return SendMessage
-                    .builder()
-                    .chatId(this.chat_id)
-                    .text(this.text_unknown_command)
-                    .build();
+            return this.mainManager.unknown(update);
         }
     }
 
@@ -102,7 +79,7 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
         }else if (update.hasMessage() && update.getMessage().hasText()) {
             this.current_manager = null;
             this.message = update.getMessage();
-            this.chat_id = String.valueOf(message.getChatId());
+            this.chat_id = String.valueOf(chat_id);
             this.sm = handle_commands(update);
         }
 
@@ -111,7 +88,7 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
             try {
                 telegramClient.execute(this.sm);
             } catch (TelegramApiException e) {
-                throw new RuntimeException(e);
+                this.mainManager.error(update);
             }
         }
 

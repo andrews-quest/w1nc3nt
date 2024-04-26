@@ -217,14 +217,16 @@ public class FinanceManager extends W1NC3NTManager{
     public SendMessage consume(Update update){
         Message message = null;
         String text = null;
+        Long chat_id = null;
         if(update.hasMessage()){
             message = update.getMessage();
             text = message.getText();
+            chat_id = message.getChatId();
         };
 
         if(text.equalsIgnoreCase("Beenden") || text.equalsIgnoreCase("End")){
             this.end();
-            return respond(message.getChatId(), this.text_exit, null);
+            return respond(chat_id, this.text_exit, null);
         }
 
 
@@ -232,14 +234,12 @@ public class FinanceManager extends W1NC3NTManager{
             if(date == null){
 
                 if(this.custom_date){
-                    this.date = message.getText();
+                    this.date = text;
                     this.custom_date = false;
-                    return this.respond(message.getChatId(), text_who, whoMarkup);
+                    return this.respond(chat_id, text_who, whoMarkup);
                 }
 
                 if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
-                    long chat_id = update.getMessage().getChatId();
-
                     if(text.equalsIgnoreCase("Ja")){
                         this.date = String.valueOf(ZonedDateTime.now().toLocalDate());
                         return this.respond(chat_id, text_who, this.whoMarkup);
@@ -251,46 +251,46 @@ public class FinanceManager extends W1NC3NTManager{
                     }
                 }
 
-                return this.respond(message.getChatId(), text_date, this.create_yes_no_markup(true));
+                return this.respond(chat_id, text_date, this.create_yes_no_markup(true));
 
             }
 
             if(this.who == null){
 
                 if(update.hasMessage()){
-                    this.who = update.getMessage().getText();
-                    return this.respond(update.getMessage().getChatId(), text_whom, create_who_markup(false, false, this.who));
+                    this.who = text;
+                    return this.respond(chat_id, text_whom, create_who_markup(false, false, this.who));
                 }
-                return this.respond(update.getMessage().getChatId(), text_who, this.whoMarkup);
+                return this.respond(chat_id, text_who, this.whoMarkup);
             }
 
             if(this.whom == null){
 
                 if(update.hasMessage()){
-                    this.whom = update.getMessage().getText();
-                    return this.respond(update.getMessage().getChatId(), text_how_much, null);
+                    this.whom = text;
+                    return this.respond(chat_id, text_how_much, null);
                 }
-                return this.respond(message.getChatId(), text_whom, null);
+                return this.respond(chat_id, text_whom, null);
             }
 
             if(this.how_much == null){
 
                 if(update.hasMessage()){
-                    this.how_much = update.getMessage().getText();
-                    return this.respond(update.getMessage().getChatId(), text_for_what, null);
+                    this.how_much = text;
+                    return this.respond(chat_id, text_for_what, null);
                 }
-                return this.respond(message.getChatId(), text_how_much, null);
+                return this.respond(chat_id, text_how_much, null);
             }
 
             if(this.for_what == null){
 
                 if(update.hasMessage()){
-                    this.for_what = update.getMessage().getText();
+                    this.for_what = text;
                     this.is_engaged = false;
                     this.db_save();
-                    return this.summary(update.getMessage().getChatId());
+                    return this.summary(chat_id);
                 }
-                return this.respond(message.getChatId(), text_for_what, null);
+                return this.respond(chat_id, text_for_what, null);
             }
         }
 
@@ -304,7 +304,7 @@ public class FinanceManager extends W1NC3NTManager{
             }else if(Arrays.stream(this.members).toList().contains(this.who)){
                 transactions = this.transactionsRepository.findHistory(this.who);
             }else{
-                return respond(message.getChatId(), this.text_false_input, null);
+                return respond(chat_id, this.text_false_input, null);
             }
             for (Transaction transaction : transactions){
                 responce += short_format_simple_date(true,
@@ -315,7 +315,7 @@ public class FinanceManager extends W1NC3NTManager{
                         transaction.getFor_what());
                 responce += "\n";
             }
-            return respond(update.getMessage().getChatId(), responce,null);
+            return respond(chat_id, responce,null);
                 // if(Arrays.stream(this.members).anyMatch(update.getMessage().getText() -> update.getMessage().getText());
                 // return this.history(update);
         }
@@ -324,19 +324,19 @@ public class FinanceManager extends W1NC3NTManager{
             this.end();
             if(update.getMessage().getText().equalsIgnoreCase("ja")){
                 if(this.db_restore_prev_balance()){
-                    return respond(message.getChatId(), this.text_cancel_yes, null);
+                    return respond(chat_id, this.text_cancel_yes, null);
                 }else{
-                    return respond(message.getChatId(), this.text_error_db, null);
+                    return respond(chat_id, this.text_error_db, null);
                 }
             }else if (update.getMessage().getText().equalsIgnoreCase("nein")){
-                return respond(message.getChatId(), this.text_cancel_no, null);
+                return respond(chat_id, this.text_cancel_no, null);
             }else{
-                return respond(message.getChatId(), this.text_false_input, null);
+                return respond(chat_id, this.text_false_input, null);
             }
         }
 
         this.end();
-        return respond(message.getChatId(), this.text_error, null);
+        return respond(chat_id, this.text_error, null);
     }
 
     @Override

@@ -14,6 +14,7 @@ telegram.bot.test_token=
 telegram.bot.token=
 
 main.members=
+main.version=
 
 moon_api.x-rapidapi-key=
 moon_api.x-rapidapi-host=
