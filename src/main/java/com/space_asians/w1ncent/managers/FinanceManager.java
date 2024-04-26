@@ -175,19 +175,25 @@ public class FinanceManager extends W1NC3NTManager{
        }
     }
 
-    private void db_save(){
-        this.transaction.setWhen(this.date);
-        this.transaction.setWho(this.who);
-        this.transaction.setWhom(this.whom);
-        this.transaction.setHow_much(Float.parseFloat(this.how_much));
-        this.transaction.setFor_what(this.for_what);
-        transactionsRepository.save(this.transaction);
+    private boolean db_save(){
+       try {
+           this.transaction.setWhen(this.date);
+           this.transaction.setWho(this.who);
+           this.transaction.setWhom(this.whom);
+           this.transaction.setHow_much(Float.parseFloat(this.how_much));
+           this.transaction.setFor_what(this.for_what);
+           transactionsRepository.save(this.transaction);
 
-        float balance = this.membersRepository.findBalanceByName(this.who) - Float.parseFloat(this.how_much);
-        this.membersRepository.updateBalance(this.who, balance);
+           float balance = this.membersRepository.findBalanceByName(this.who) - Float.parseFloat(this.how_much);
+           this.membersRepository.updateBalance(this.who, balance);
 
-        balance = this.membersRepository.findBalanceByName(this.whom) + Float.parseFloat(this.how_much);
-        this.membersRepository.updateBalance(this.whom, balance);
+           balance = this.membersRepository.findBalanceByName(this.whom) + Float.parseFloat(this.how_much);
+           this.membersRepository.updateBalance(this.whom, balance);
+           return true;
+       }catch (Exception e){
+           System.out.println(e);
+           return false;
+       }
    }
 
    private boolean db_restore_prev_balance(){
@@ -287,8 +293,11 @@ public class FinanceManager extends W1NC3NTManager{
                 if(update.hasMessage()){
                     this.for_what = text;
                     this.is_engaged = false;
-                    this.db_save();
-                    return this.summary(chat_id);
+                    if(this.db_save()){
+                        return this.summary(chat_id);
+                    }else{
+                        return this.respond(chat_id, text_error_db, null);
+                    }
                 }
                 return this.respond(chat_id, text_for_what, null);
             }
@@ -316,8 +325,6 @@ public class FinanceManager extends W1NC3NTManager{
                 responce += "\n";
             }
             return respond(chat_id, responce,null);
-                // if(Arrays.stream(this.members).anyMatch(update.getMessage().getText() -> update.getMessage().getText());
-                // return this.history(update);
         }
 
         if(this.state == "cancel"){
