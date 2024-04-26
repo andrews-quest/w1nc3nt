@@ -12,12 +12,11 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
 
 @Component
-public class FinanceManager extends W1NC3NTManager{
+public class FinanceManager extends W1nc3ntManager {
 
     @Value("${main.members}")
     private String[] members;

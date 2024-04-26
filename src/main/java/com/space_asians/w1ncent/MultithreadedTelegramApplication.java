@@ -1,7 +1,7 @@
 package com.space_asians.w1ncent;
 
+import com.space_asians.w1ncent.bots.W1nc3ntBot;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
-import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 
 public class MultithreadedTelegramApplication extends Thread {
 

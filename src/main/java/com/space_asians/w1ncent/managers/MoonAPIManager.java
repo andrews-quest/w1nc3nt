@@ -11,7 +11,7 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 @Service
-public class MoonAPIManager extends W1NC3NTManager{
+public class MoonAPIManager extends W1nc3ntManager {
     private OkHttpClient httpClient = new OkHttpClient();
 
     private Response response;

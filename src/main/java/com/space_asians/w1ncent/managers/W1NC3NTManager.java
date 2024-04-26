@@ -2,10 +2,9 @@ package com.space_asians.w1ncent.managers;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
-public class W1NC3NTManager {
+public class W1nc3ntManager {
 
     public boolean is_engaged = false;
     private ReplyKeyboardMarkup markup;

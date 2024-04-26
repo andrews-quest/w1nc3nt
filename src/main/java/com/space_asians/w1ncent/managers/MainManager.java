@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 
 @Service
-public class MainManager extends W1NC3NTManager{
+public class MainManager extends W1nc3ntManager {
 
 
     @Value("${text.main.greeting}")
