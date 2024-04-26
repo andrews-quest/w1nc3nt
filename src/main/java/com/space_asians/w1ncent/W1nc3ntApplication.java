@@ -16,12 +16,12 @@ public class W1nc3ntApplication implements ApplicationRunner {
 	String token;
 
 	@Autowired
-	private W1NC3NT_BOT w1nc3ntBot;
+	private W1nc3ntPrivateBot w1nc3ntBot;
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
 		try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
-			botsApplication.registerBot(this.token, w1nc3ntBot);
+			botsApplication.registerBot(this.token, this.w1nc3ntBot);
 			System.out.println("Success");
 			Thread.currentThread().join();
 		} catch (Exception e) {

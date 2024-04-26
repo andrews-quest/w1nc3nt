@@ -18,32 +18,23 @@ import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 
 
 @Service
-public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
+public class W1nc3ntPrivateBot extends W1nc3ntBot{
     @Value("${telegram.bot.username}")
     private String username;
     @Value("${telegram.bot.test_token}")
     private String token;
 
-
-    // Message properties
     @PostConstruct
     public void init(){
         this.telegramClient = new OkHttpTelegramClient(token);
     }
-    private TelegramClient telegramClient;
+    protected TelegramClient telegramClient;
 
     // Managers
     private W1NC3NTManager current_manager;
-    @Autowired
-    private FinanceManager financeManager;
-    @Autowired
-    private MoonAPIManager moonAPIManager;
-    @Autowired
-    private MainManager mainManager;
 
     private SendMessage sm = null;
-    private Message message;
-    private String chat_id;
+
 
     private SendMessage handle_commands(Update update){
         String text = update.getMessage().getText();
@@ -78,15 +69,15 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
             this.sm = this.current_manager.consume(update);
         }else if (update.hasMessage() && update.getMessage().hasText()) {
             this.current_manager = null;
-            this.message = update.getMessage();
-            this.chat_id = String.valueOf(chat_id);
+            Message message = update.getMessage();
+            Long chat_id = message.getChatId();
             this.sm = handle_commands(update);
         }
 
         // send a respective message
         if(this.sm != null) {
             try {
-                telegramClient.execute(this.sm);
+                this.telegramClient.execute(this.sm);
             } catch (TelegramApiException e) {
                 this.mainManager.error(update);
             }
