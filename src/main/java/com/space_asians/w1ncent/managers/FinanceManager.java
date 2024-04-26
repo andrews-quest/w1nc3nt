@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Component
@@ -165,9 +166,9 @@ public class FinanceManager extends W1NC3NTManager{
     }
 
     private String short_format_simple_date(boolean date_first, String date, String who, String whom, float how_much, String for_what){
-       if(date == java.time.ZonedDateTime.now().toLocalDate().toString()) {
+       if(date == ZonedDateTime.now().toLocalDate().toString()) {
             return short_format(date_first, "heute", who, whom, how_much, for_what);
-       }else if(date == java.time.ZonedDateTime.now().toLocalDate().minusDays(1).toString()){
+       }else if(date == ZonedDateTime.now().toLocalDate().minusDays(1).toString()){
             return short_format(date_first, "gestern", who, whom, how_much, for_what);
        }else{
            return short_format(date_first, date, who, whom, how_much, for_what);
@@ -240,7 +241,7 @@ public class FinanceManager extends W1NC3NTManager{
                     long chat_id = update.getMessage().getChatId();
 
                     if(text.equalsIgnoreCase("Ja")){
-                        this.date = String.valueOf(java.time.ZonedDateTime.now().toLocalDate());
+                        this.date = String.valueOf(ZonedDateTime.now().toLocalDate());
                         return this.respond(chat_id, text_who, this.whoMarkup);
                     }else if(text.equalsIgnoreCase("Nein")) {
                         this.custom_date = true;
@@ -296,7 +297,17 @@ public class FinanceManager extends W1NC3NTManager{
         if(this.state == "history"){
             this.is_engaged = false;
             this.who = update.getMessage().getText();
-            return respond(update.getMessage().getChatId(),this.transactionsRepository.findAll().toString(), null);
+            String responce = null;
+            for (Transaction transaction : this.transactionsRepository.findAll()){
+                responce += short_format_simple_date(true,
+                        transaction.getWhen(),
+                        transaction.getWho(),
+                        transaction.getWhom(),
+                        transaction.getHow_much(),
+                        transaction.getFor_what());
+                responce += "\n";
+            }
+            return respond(update.getMessage().getChatId(), responce,null);
                 // if(Arrays.stream(this.members).anyMatch(update.getMessage().getText() -> update.getMessage().getText());
                 // return this.history(update);
         }
