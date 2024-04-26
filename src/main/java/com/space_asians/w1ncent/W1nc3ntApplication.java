@@ -15,18 +15,22 @@ public class W1nc3ntApplication implements ApplicationRunner {
 	@Value("${telegram.bot.test_token}")
 	String token;
 
+	@Value("${telegram.bot.group.test_token}")
+	String group_token;
+
 	@Autowired
-	private W1nc3ntPrivateBot w1nc3ntBot;
+	private W1nc3ntPrivateBot w1nc3ntPrivateBot;
+	@Autowired
+	private W1nc3ntGroupBot w1nc3ntGroupBot;
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
-			botsApplication.registerBot(this.token, this.w1nc3ntBot);
-			System.out.println("Success");
-			Thread.currentThread().join();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		System.out.println("Failure");
+		MultithreadedTelegramApplication botsPrivateApplication = new MultithreadedTelegramApplication(this.token,
+				this.w1nc3ntPrivateBot);
+		MultithreadedTelegramApplication botsGroupApplication = new MultithreadedTelegramApplication(this.group_token,
+				this.w1nc3ntGroupBot);
+		
+		botsGroupApplication.start();
+		botsPrivateApplication.start();
 	}
 }

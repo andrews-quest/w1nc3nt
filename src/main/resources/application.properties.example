@@ -10,8 +10,11 @@ spring.jpa.hibernate.ddl.auto=update
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 
 telegram.bot.username=
+telegram.bot.group.username=
 telegram.bot.test_token=
 telegram.bot.token=
+telegram.bot.group.token=
+telegram.bot.group.test_token=
 
 main.members=
 main.version=
