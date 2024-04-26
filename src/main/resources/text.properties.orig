@@ -1,0 +1,28 @@
+<<<<<<< HEAD
+text.main.greeting=Ich begrüße Sie, liebe Herrinen.
+=======
+>>>>>>> 333b828eb7724e55211d08ec05094c51cecc23c0
+text.main.deny_group_finances_update=Tut mir leid, liebe Herrin, aber um den group Chat nicht zu überflüssen, anwenden sie den Befehl im privaten Chat mit mir.
+text.main.unknown_command=Ich weiß noch nicht, wie ich das beantworten soll. Tut mir leid.
+
+text.finance.date=Fand es heute statt?
+text.finance.false_input=Tut mir leid, ich kann diese Eingabe nicht erkennen. Bitte, versuchen Sie es nochmal.
+text.finance.ask_date=Nennen Sie mir bitte die gewünschte Datum als\nDD MM oder DD-MM\noder lassen sie es Leer, falls das Datum ist heute.
+text.finance.who=Wer soll den Bilanz abgleichen?
+text.finance.whom=Zu wessen gunsten wurde sie durchgeführt?
+text.finance.how_much =Wie groß war die Transaktion? Nennes Sie bitte die Summe in Euro."
+text.finance.for_what=Wofür wurde es geleistet?
+text.finance.summary=Also die Eintrag ist: 
+text.finance.check=Der aktuelle Bilanz in Euro ist wie folgend:
+text.finance.history=Für welche Teilnehmer soll ich die finanzielle Geschichte abrufen?
+text.finance.cancel=Sind Sie sicher, dass Sie die letze Operation ( ... ) widerrufen wollen?
+text.finance.cancel.yes=Es ist erledigt.
+text.finance.cancel.no=Keine Sorgen, alles ist unverändert geblieben.
+text.finance.exit=Sie haben die Operation abgebrochen.
+
+text.moon_api.failure=Tut mir leid, aber etwas ist mit MoonAPI schiffgelaufen.
+text.moon_api.basic_moonapi_responce=Ihr aktueller Digest über den Mond, meine Herrinen:\nMondphase: %s\nStufe: %s\nDer nächste volle Mond in %s Tage\nDer nächste neue Mond in %s Tage
+
+text.error=ERROR! Diese Nachricht soll nie auftauchen. Etwas ist schiffgegangen.
+text.error.db=Etwas mit meinem Datenbank ist leider schiffgelaufen. Wenden Sie bitte an meinen Schöpfer.
+
