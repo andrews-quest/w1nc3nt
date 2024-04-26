@@ -44,6 +44,8 @@ public class FinanceManager extends W1NC3NTManager{
     private String text_false_input;
     @Value("${text.finance.ask_date}")
     private String text_ask_date;
+    @Value("${text.finance.false_date}")
+    private String text_false_date;
     @Value("${text.finance.who}")
     private String text_who;
     @Value("${text.finance.whom}")
@@ -214,9 +216,6 @@ public class FinanceManager extends W1NC3NTManager{
        }
    }
 
-
-
-
     // Main Function
 
     @Override
@@ -240,7 +239,11 @@ public class FinanceManager extends W1NC3NTManager{
             if(date == null){
 
                 if(this.custom_date){
-                    this.date = text;
+                    if(text.matches("\\d\\d \\d\\d|\\d\\d-\\d\\d")){
+                        this.date = text;
+                    }else{
+                        return this.respond(chat_id, text_false_date, null);
+                    }
                     this.custom_date = false;
                     return this.respond(chat_id, text_who, whoMarkup);
                 }
