@@ -9,7 +9,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Service
 public class MainManager extends W1nc3ntManager {
 
-
+    @Value("${text.main.start}")
+    private String text_start;
+    @Value("${text.main.false_start}")
+    private String text_false_start;
     @Value("${text.main.greeting}")
     private String text_greeting;
     @Value("${text.main.about}")
@@ -20,6 +23,14 @@ public class MainManager extends W1nc3ntManager {
     private String text_unknown_command;
     @Value("${text.error")
     private String text_error;
+
+    public SendMessage start(Update update, boolean is_logged_in){
+        if(is_logged_in){
+            return this.respond(update.getMessage().getChatId(), this.text_false_start, null);
+        }else{
+            return this.respond(update.getMessage().getChatId(), this.text_start, null);
+        }
+    }
 
     public SendMessage greet(Update update){
         return this.respond(update.getMessage().getChatId(), this.text_greeting, null);
