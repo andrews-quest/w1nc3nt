@@ -41,6 +41,8 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
     private String chat_id;
     @Value("${text.main.deny_group_finances_update}")
     private String text_deny_group_finances_update;
+    @Value("${text.main.unknown_command}")
+    private String text_unknown_command;
 
 
     private SendMessage greet(){
@@ -83,7 +85,7 @@ public class W1NC3NT_BOT implements LongPollingSingleThreadUpdateConsumer {
             return SendMessage
                     .builder()
                     .chatId(this.chat_id)
-                    .text("Ich weiÃŸ noch nicht, wie ich das beantworten soll. Tut mir leid.")
+                    .text(this.text_unknown_command)
                     .build();
         }
     }
