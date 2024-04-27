@@ -2,30 +2,67 @@ package com.space_asians.w1ncent.managers;
 
 import com.space_asians.w1ncent.repositories.MembersRepository;
 import com.space_asians.w1ncent.repositories.TransactionsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
 public class W1nc3ntManager {
 
+    @Autowired
     protected MembersRepository membersRepository;
+    @Autowired
     protected TransactionsRepository transactionsRepository;
 
     public boolean is_engaged = false;
-    protected ReplyKeyboardMarkup markup;
 
     @Value("${text.error.default_manager}")
     protected String text_error_default_manager;
 
     protected SendMessage respond(long chat_id, String text, ReplyKeyboardMarkup markup){
-       return SendMessage
+        return SendMessage
                .builder()
                .chatId(chat_id)
                .text(text)
                .replyMarkup(markup)
                .build();
     }
+
+    protected SendMessage respond_inline(long chat_id, String text, InlineKeyboardMarkup markup){
+        return SendMessage
+                .builder()
+                .chatId(chat_id)
+                .text(text)
+                .replyMarkup(markup)
+                .build();
+    }
+
+
+    protected ReplyKeyboardMarkup create_yes_no_markup(boolean has_end_option){
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow row = new KeyboardRow();
+
+        row.add("Ja");
+        row.add("Nein");
+        keyboard.add(row);
+        row = new KeyboardRow();
+        if(has_end_option){
+            row.add("Beenden");
+            keyboard.add(row);
+        }
+        ReplyKeyboardMarkup YesNoMarkup = new ReplyKeyboardMarkup(keyboard);
+        return YesNoMarkup;
+    }
+
 
     public SendMessage consume(Update update){
         return this.respond(update.getMessage().getChatId(), this.text_error_default_manager, null);

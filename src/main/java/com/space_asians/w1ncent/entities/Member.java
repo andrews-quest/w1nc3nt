@@ -25,5 +25,8 @@ public class Member {
     private String state;
 
     @Column
+    private String state_manager;
+
+    @Column
     private Long chat_id;
 }

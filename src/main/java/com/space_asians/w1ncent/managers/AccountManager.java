@@ -7,6 +7,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class AccountManager extends W1nc3ntManager{
@@ -15,15 +21,16 @@ public class AccountManager extends W1nc3ntManager{
     private String text_auth_success;
     @Value("${text.account.authentication.failure}")
     private String text_auth_failure;
+    @Value("${text.account.options}")
+    private String text_options;
+    @Value("${text.account.info}")
+    private String text_info;
+
 
     public boolean is_logged_in(Update update){
         Long chat_id = update.getMessage().getChatId();
-        Member member = membersRepository.findByChatId(chat_id);
-        if(member == null){
-            return false;
-        }else{
-            return true;
-        }
+        Member member = this.membersRepository.findByChatId(chat_id);
+        return member == null ? false : true;
     }
 
     public SendMessage authenticate(Update update){
@@ -38,11 +45,16 @@ public class AccountManager extends W1nc3ntManager{
     }
 
     public SendMessage options(Update update){
-        return null;
+        String account_info = this.get_account_info(update.getMessage().getChatId());
+        return respond(update.getMessage().getChatId(),
+                account_info + this.text_options,
+                this.create_yes_no_markup(false));
     }
 
-    public SendMessage account_info(){
-        return null;
+    public String get_account_info(Long chat_id){
+        Member member = this.membersRepository.findByChatId(chat_id);
+        String name = member.getName();
+        return String.format(this.text_info, name);
     }
 
     public SendMessage log_out(){

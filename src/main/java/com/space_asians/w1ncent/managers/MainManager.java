@@ -40,8 +40,7 @@ public class MainManager extends W1nc3ntManager {
 
     public SendMessage about(Update update){
         return this.respond(update.getMessage().getChatId(),
-                String.format(this.text_about, this.text_version),
-                null);
+                String.format(this.text_about, this.text_version),null);
     }
 
     public SendMessage error(Update update){

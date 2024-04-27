@@ -101,21 +101,8 @@ public class FinanceManager extends W1nc3ntManager {
 
    }
 
-   private ReplyKeyboardMarkup create_yes_no_markup(boolean has_end_option){
-       List<KeyboardRow> keyboard = new ArrayList<>();
-       KeyboardRow row = new KeyboardRow();
 
-       row.add("Ja");
-       row.add("Nein");
-       keyboard.add(row);
-       row = new KeyboardRow();
-       if(has_end_option){
-           row.add("Beenden");
-           keyboard.add(row);
-       }
-       YesNoMarkup = new ReplyKeyboardMarkup(keyboard);
-       return YesNoMarkup;
-   }
+
 
    private ReplyKeyboardMarkup create_who_markup(boolean is_inline, boolean include_all_button, String excluded_member){
        List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
