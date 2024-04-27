@@ -25,6 +25,8 @@ public class AccountManager extends W1nc3ntManager{
     private String text_options;
     @Value("${text.account.info}")
     private String text_info;
+    @Value("${text.account.log_out}")
+    private String text_log_out;
 
 
     public boolean is_logged_in(Update update){
@@ -57,7 +59,9 @@ public class AccountManager extends W1nc3ntManager{
         return String.format(this.text_info, name);
     }
 
-    public SendMessage log_out(){
-        return null;
+    public SendMessage log_out(Update update){
+        Long chat_id = update.getMessage().getChatId();
+        this.membersRepository.dropChatId(chat_id);
+        return this.respond(chat_id, this.text_log_out, null);
     }
 }
