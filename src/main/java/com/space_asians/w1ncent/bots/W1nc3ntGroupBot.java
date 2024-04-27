@@ -30,24 +30,6 @@ public class W1nc3ntGroupBot extends W1nc3ntBot {
     private SendMessage sm = null;
 
 
-    protected SendMessage handle_commands(Update update){
-        String text = update.getMessage().getText();
-        if(text.equals("/greet")){
-            return this.mainManager.greet(update);
-        }else if(text.equals("/about_w1nc3nt")){
-            return this.mainManager.about(update);
-        }else if(text.equals("/finances_check")) {
-            return this.financeManager.check(update);
-        }else if(text.equals("/finances_history")){
-            this.current_manager = this.financeManager;
-            return this.financeManager.history(update);
-        }else if(text.equals("/lunar_digest")){
-            return this.moonAPIManager.consume(update);
-        }else{
-            return this.mainManager.unknown(update);
-        }
-    }
-
 
     @Override
     public void consume(Update update) {
@@ -73,7 +55,7 @@ public class W1nc3ntGroupBot extends W1nc3ntBot {
 
         this.sm = null;
         if(this.current_manager != null && this.current_manager.is_engaged == false){
-            this.current_manager.end();
+            this.current_manager.end(update.getMessage().getChatId());
             this.current_manager = null;
         }
 

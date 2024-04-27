@@ -21,8 +21,6 @@ public class FinanceManager extends W1nc3ntManager {
     @Value("${main.members}")
     private String[] members;
 
-    private String state = "none";
-
     private Transaction transaction = new Transaction();
     @Autowired
     private TransactionsRepository transactionsRepository;
@@ -101,9 +99,6 @@ public class FinanceManager extends W1nc3ntManager {
 
    }
 
-
-
-
    private ReplyKeyboardMarkup create_who_markup(boolean is_inline, boolean include_all_button, String excluded_member){
        List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
        KeyboardRow row = new KeyboardRow();
@@ -125,13 +120,6 @@ public class FinanceManager extends W1nc3ntManager {
        whomMarkup = new ReplyKeyboardMarkup(keyboard);
        return whomMarkup;
    }
-
-    public SendMessage update(Update update){
-        this.is_engaged = true;
-        this.state = "update";
-        this.create_markups();
-        return this.consume(update);
-    }
 
 
     private SendMessage summary(long chat_id){
@@ -216,12 +204,12 @@ public class FinanceManager extends W1nc3ntManager {
         };
 
         if(text.equalsIgnoreCase("Beenden") || text.equalsIgnoreCase("End")){
-            this.end();
+            this.end(chat_id);
             return respond(chat_id, this.text_exit, null);
         }
 
 
-        if(this.state == "update"){
+        if(this.get_state(chat_id).equals("update")){
             if(date == null){
 
                 if(this.custom_date){
@@ -292,7 +280,7 @@ public class FinanceManager extends W1nc3ntManager {
             }
         }
 
-        if(this.state == "history"){
+        if(this.get_state(chat_id).equals("history")){
             this.is_engaged = false;
             this.who = update.getMessage().getText();
             String responce = null;
@@ -316,8 +304,8 @@ public class FinanceManager extends W1nc3ntManager {
             return respond(chat_id, responce,null);
         }
 
-        if(this.state == "cancel"){
-            this.end();
+        if(this.get_state(chat_id).equals("cancel")){
+            this.end(chat_id);
             if(update.getMessage().getText().equalsIgnoreCase("ja")){
                 if(this.db_restore_prev_balance()){
                     return respond(chat_id, this.text_cancel_yes, null);
@@ -331,13 +319,13 @@ public class FinanceManager extends W1nc3ntManager {
             }
         }
 
-        this.end();
+        this.end(chat_id);
         return respond(chat_id, this.text_error, null);
     }
 
     @Override
-    public void end(){
-        this.state = "none";
+    public void end(Long chat_id){
+        super.end(chat_id);
         this.transaction = new Transaction();
         this.is_engaged = false;
         this.date = null;
@@ -347,8 +335,15 @@ public class FinanceManager extends W1nc3ntManager {
         this.for_what = null;
     }
 
+    public SendMessage update(Update update){
+        this.is_engaged = true;
+        this.set_state("update", update.getMessage().getChatId());
+        this.create_markups();
+        return this.consume(update);
+    }
+
     public SendMessage check(Update update){
-       this.state = "check";
+       this.set_state("check", update.getMessage().getChatId());
        String text = this.text_finances_check;
        for(String member : this.members){
            String balance = String.valueOf(this.membersRepository.findBalanceByName(member));
@@ -359,7 +354,7 @@ public class FinanceManager extends W1nc3ntManager {
 
     public SendMessage history(Update update){
        this.is_engaged = true;
-       this.state = "history";
+       this.set_state("history", update.getMessage().getChatId());
        return respond(update.getMessage().getChatId(),
                this.text_history,
                this.create_who_markup(true, true, null));
@@ -367,7 +362,7 @@ public class FinanceManager extends W1nc3ntManager {
 
     public SendMessage cancel_last(Update update){
        this.is_engaged = true;
-       this.state = "cancel";
+       this.set_state("cancel", update.getMessage().getChatId());
        return respond(update.getMessage().getChatId(),
                this.text_cancel,
                this.create_yes_no_markup(false));

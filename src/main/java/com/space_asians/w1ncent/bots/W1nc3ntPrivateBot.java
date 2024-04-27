@@ -54,7 +54,7 @@ public class W1nc3ntPrivateBot extends W1nc3ntBot {
 
         this.sm = null;
         if(this.current_manager != null && this.current_manager.is_engaged == false){
-            this.current_manager.end();
+            this.current_manager.end(update.getMessage().getChatId());
             this.current_manager = null;
         }
 
