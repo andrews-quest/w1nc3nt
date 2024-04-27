@@ -11,9 +11,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Service
 public class AccountManager extends W1nc3ntManager{
 
-    @Autowired
-    private MembersRepository membersRepository;
-
     @Value("${text.account.authentication.success}")
     private String text_auth_success;
     @Value("${text.account.authentication.failure}")
