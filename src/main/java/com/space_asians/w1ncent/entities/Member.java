@@ -16,5 +16,14 @@ public class Member {
     private String name;
 
     @Column
-    float balance;
+    private float balance;
+
+    @Column
+    private String password;
+
+    @Column
+    private String state;
+
+    @Column
+    private Long chat_id;
 }

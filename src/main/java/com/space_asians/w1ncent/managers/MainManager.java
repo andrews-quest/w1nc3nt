@@ -21,8 +21,10 @@ public class MainManager extends W1nc3ntManager {
     private String text_version;
     @Value("${text.main.unknown_command}")
     private String text_unknown_command;
-    @Value("${text.error")
+    @Value("${text.error}")
     private String text_error;
+    @Value("${text.account.not_authenticated}")
+    private String text_not_authenticated;
 
     public SendMessage start(Update update, boolean is_logged_in){
         if(is_logged_in){
@@ -48,5 +50,9 @@ public class MainManager extends W1nc3ntManager {
 
     public SendMessage unknown(Update update){
         return this.respond(update.getMessage().getChatId(), this.text_unknown_command, null);
+    }
+
+    public SendMessage not_authenticated(Update update){
+        return this.respond(update.getMessage().getChatId(), this.text_not_authenticated, null);
     }
 }

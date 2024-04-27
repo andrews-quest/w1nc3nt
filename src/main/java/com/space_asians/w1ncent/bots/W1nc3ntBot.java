@@ -41,14 +41,29 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
             }
         }
 
-        if(text.equals("/start")){
-            if(this.accountManager.is_logged_in()){
-               return this.mainManager.start(update, false);
-            }else{
+        boolean is_logged_in = this.accountManager.is_logged_in(update);
+
+        if(text.equals("/start")) {
+            if (is_logged_in) {
+                return this.mainManager.start(update, false);
+            } else {
                 return this.mainManager.start(update, true);
             }
+        }
 
-        }else if(text.equals("/greet")) {
+        if(text.equals("/account")){
+            if(is_logged_in){
+                return this.accountManager.options(update);
+            }else{
+                return this.accountManager.authenticate(update);
+            }
+        }
+
+        if (!is_logged_in) {
+            return this.mainManager.not_authenticated(update);
+        }
+
+        if(text.equals("/greet")) {
             return this.mainManager.greet(update);
         } else if (text.equals("/about_w1nc3nt")) {
             return this.mainManager.about(update);
@@ -62,7 +77,11 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
             return this.moonAPIManager.consume(update);
         }
 
-        return this.mainManager.unknown(update);
+        if(this.is_private){
+            return this.mainManager.unknown(update);
+        }else{
+            return null;
+        }
     }
 
     @Override
