@@ -60,7 +60,8 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
         }
 
         if (!is_logged_in) {
-            return this.mainManager.not_authenticated(update);
+            return  this.accountManager.authenticate(update);
+            // return this.mainManager.not_authenticated(update);
         }
 
         if(text.equals("/greet")) {

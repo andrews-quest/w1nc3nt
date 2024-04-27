@@ -21,10 +21,18 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     @Query(value = "SELECT balance FROM members WHERE `name` = ?1", nativeQuery = true)
     public float findBalanceByName(String name);
 
-    @Modifying
-    @Query(value = "UPDATE Member m set m.balance=?2 where m.name=?1")
-    public void updateBalance(String name, float balance);
+
 
     @Query(value = "SELECT * FROM members WHERE chat_id = ?1", nativeQuery = true)
     public Member findByChatId(Long chat_id);
+
+    public Member findByPassword(String password);
+
+    @Modifying
+    @Query(value = "UPDATE Member m set m.balance=?2 WHERE m.name=?1")
+    public void updateBalance(String name, float balance);
+
+    @Modifying
+    @Query(value = "UPDATE Member m set m.chat_id = ?1 WHERE m.password = ?2")
+    public void updateChatId(Long chat_id, String password);
 }
