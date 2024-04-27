@@ -33,17 +33,15 @@ public class W1nc3ntPrivateBot extends W1nc3ntBot {
     @Override
     public void consume(Update update) {
 
-        // a manager is engaged
+
         if(this.current_manager != null){
             this.sm = this.current_manager.consume(update);
         }else if (update.hasMessage() && update.getMessage().hasText()) {
             this.current_manager = null;
-            Message message = update.getMessage();
-            Long chat_id = message.getChatId();
             this.sm = handle_commands(update);
         }
 
-        // send a respective message
+
         if(this.sm != null) {
             try {
                 this.telegramClient.execute(this.sm);

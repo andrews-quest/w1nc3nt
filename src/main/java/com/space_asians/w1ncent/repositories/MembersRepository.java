@@ -36,6 +36,11 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     @Query(value = "UPDATE Member m set m.chat_id = ?1 WHERE m.password = ?2")
     public void updateChatId(Long chat_id, String password);
 
+
+    @Modifying
+    @Query(value = "UPDATE Member m set m.chat_id = 0 WHERE m.chat_id = ?1")
+    public void dropChatId(Long chat_id);
+
     @Modifying
     @Query(value = "UPDATE Member m SET m.state_manager = ?1 WHERE m.chat_id = ?2")
     public void updateStateManager(String state_manager, Long chat_id);
