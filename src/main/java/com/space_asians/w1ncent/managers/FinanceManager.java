@@ -135,9 +135,9 @@ public class FinanceManager extends W1nc3ntManager {
 
     private String short_format(boolean date_first, String date, String who, String whom, float how_much, String for_what){
         if (date_first) {
-            return String.format("%s %s -> %s %s für %s", date, who, whom, how_much, for_what);
+            return String.format("%s %s -> %s %s€ für %s", date, who, whom, how_much, for_what);
         } else {
-            return String.format("%s -> %s %s für %s am %s", who, whom, how_much, for_what, date);
+            return String.format("%s -> %s %s€ für %s am %s", who, whom, how_much, for_what, date);
         }
     }
 
@@ -268,7 +268,7 @@ public class FinanceManager extends W1nc3ntManager {
             if(this.for_what == null){
 
                 if(update.hasMessage()){
-                    this.for_what = text;
+                    this.for_what = text.substring(0,1).toUpperCase() + text.substring(1);
                     this.is_engaged = false;
                     if(this.db_save()){
                         return this.summary(chat_id);
