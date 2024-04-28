@@ -362,9 +362,16 @@ public class FinanceManager extends W1nc3ntManager {
 
     public SendMessage cancel_last(Update update){
        this.is_engaged = true;
+       Transaction prev_transaction = this.transactionsRepository.findTopByOrderByIdDesc();
+       String prev_transaction_short = this.short_format_simple_date(false,
+               prev_transaction.getWho(),
+               prev_transaction.getWhom(),
+               prev_transaction.getWhen(),
+               prev_transaction.getHow_much(),
+               prev_transaction.getFor_what());
        this.set_state("cancel", update.getMessage().getChatId());
        return respond(update.getMessage().getChatId(),
-               this.text_cancel,
+               String.format(this.text_cancel, prev_transaction_short),
                this.create_yes_no_markup(false));
     }
 }

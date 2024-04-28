@@ -47,7 +47,8 @@ public class AccountManager extends W1nc3ntManager{
     }
 
     public SendMessage options(Update update){
-        String account_info = this.get_account_info(update.getMessage().getChatId());
+        Long chat_id = update.getMessage().getChatId();
+        String account_info = this.get_account_info(chat_id);
         return respond(update.getMessage().getChatId(),
                 account_info + this.text_options,
                 this.create_yes_no_markup(false));
@@ -64,4 +65,5 @@ public class AccountManager extends W1nc3ntManager{
         this.membersRepository.dropChatId(chat_id);
         return this.respond(chat_id, this.text_log_out, null);
     }
+
 }
