@@ -34,7 +34,7 @@ public class FinanceManager extends W1nc3ntManager {
     private LocalDate date;
     private String who;
     private String whom;
-    private String how_much;
+    private float how_much;
     private String for_what;
 
     private boolean custom_date = false;
@@ -74,6 +74,12 @@ public class FinanceManager extends W1nc3ntManager {
     private String text_error_db;
     @Value("${text.error.date}")
     private String text_error_date;
+    @Value("${text.error.unknown_member}")
+    private String text_unknown_member;
+    @Value("${text.error.sum_format}")
+    private String text_error_sum_format;
+    @Value("${text.error.sum_negative}")
+    private String text_error_sum_negative;
     @Value("${text.finance.summary}")
     private String text_summary;
 
@@ -135,16 +141,16 @@ public class FinanceManager extends W1nc3ntManager {
                         this.date,
                         this.who,
                         this.whom,
-                        Float.parseFloat(this.how_much),
+                        this.how_much,
                         this.for_what),
                 null);
     }
 
     private String short_format(boolean date_first, String date, String who, String whom, float how_much, String for_what){
         if (date_first) {
-            return String.format("%s %s -> %s %s€ für %s", date, who, whom, how_much, for_what);
+            return String.format("%s %s -> %s %.2f€ für %s", date, who, whom, how_much, for_what);
         } else {
-            return String.format("%s -> %s %s€ für %s am %s", who, whom, how_much, for_what, date);
+            return String.format("%s -> %s %.2f€ für %s am %s", who, whom, how_much, for_what, date);
         }
     }
 
@@ -163,14 +169,14 @@ public class FinanceManager extends W1nc3ntManager {
            this.transaction.setWhen(this.date);
            this.transaction.setWho(this.who);
            this.transaction.setWhom(this.whom);
-           this.transaction.setHow_much(Float.parseFloat(this.how_much));
+           this.transaction.setHow_much(this.how_much);
            this.transaction.setFor_what(this.for_what);
            transactionsRepository.save(this.transaction);
 
-           float balance = this.membersRepository.findBalanceByName(this.who) - Float.parseFloat(this.how_much);
+           float balance = this.membersRepository.findBalanceByName(this.who) - this.how_much;
            this.membersRepository.updateBalance(this.who, balance);
 
-           balance = this.membersRepository.findBalanceByName(this.whom) + Float.parseFloat(this.how_much);
+           balance = this.membersRepository.findBalanceByName(this.whom) + this.how_much;
            this.membersRepository.updateBalance(this.whom, balance);
            return true;
        }catch (Exception e){
@@ -234,7 +240,7 @@ public class FinanceManager extends W1nc3ntManager {
                     return this.respond(chat_id, this.text_who, whoMarkup);
                 }
 
-                if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
+                if(update.hasMessage() && !Objects.equals(text, "/finances_update")){
                     if(text.equalsIgnoreCase("Ja")){
                         this.date = LocalDate.now();
                         return this.respond(chat_id, this.text_who, this.whoMarkup);
@@ -253,8 +259,12 @@ public class FinanceManager extends W1nc3ntManager {
             if(this.who == null){
 
                 if(update.hasMessage()){
-                    this.who = text;
-                    return this.respond(chat_id, this.text_whom, create_who_markup(false, false, this.who));
+                    if(Arrays.stream(this.members).toList().contains(text)){
+                        this.who = text;
+                        return this.respond(chat_id, this.text_whom, create_who_markup(false, false, this.who));
+                    }else{
+                        return this.respond(chat_id, this.text_unknown_member, null);
+                    }
                 }
                 return this.respond(chat_id, this.text_who, this.whoMarkup);
             }
@@ -262,16 +272,28 @@ public class FinanceManager extends W1nc3ntManager {
             if(this.whom == null){
 
                 if(update.hasMessage()){
-                    this.whom = text;
-                    return this.respond(chat_id, this.text_how_much, null);
+                    if(Arrays.stream(this.members).toList().contains(text)){
+                        this.whom = text;
+                        return this.respond(chat_id, this.text_how_much, null);
+                    }else{
+                        return this.respond(chat_id, this.text_unknown_member, null);
+                    }
                 }
                 return this.respond(chat_id, this.text_whom, null);
             }
 
-            if(this.how_much == null){
+            if(this.how_much == 0){
 
                 if(update.hasMessage()){
-                    this.how_much = text;
+                    try{
+                        this.how_much = Float.parseFloat(text);
+                    }catch (NumberFormatException e){
+                        return this.respond(chat_id, this.text_error_sum_format, null);
+                    }
+                    if(this.how_much < 0){
+                        this.how_much = 0;
+                        return this.respond(chat_id, this.text_error_sum_negative, null);
+                    }
                     return this.respond(chat_id, this.text_for_what, null);
                 }
                 return this.respond(chat_id, this.text_how_much, null);
@@ -349,7 +371,7 @@ public class FinanceManager extends W1nc3ntManager {
         this.date = null;
         this.who = null;
         this.whom = null;
-        this.how_much = null;
+        this.how_much = 0;
         this.for_what = null;
     }
 
