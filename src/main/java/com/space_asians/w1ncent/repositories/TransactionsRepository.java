@@ -15,7 +15,7 @@ public interface TransactionsRepository extends CrudRepository<Transaction, Inte
      // @Query("SELECT * FROM TRANSACTIONS WHERE WHO=\"Firuz\"")
      // public List<String> findAllByMember();
 
-    @Query(value = "SELECT * FROM transactions ORDER BY `when` ASC", nativeQuery = true)
+    @Query(value = "SELECT * FROM transactions ORDER BY `when` DESC", nativeQuery = true)
     public Iterable<Transaction> findAllOrderByWhenAsc();
 
     public Transaction findTopByOrderByIdDesc();

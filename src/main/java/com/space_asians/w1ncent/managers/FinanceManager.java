@@ -132,7 +132,7 @@ public class FinanceManager extends W1nc3ntManager {
     private SendMessage summary(long chat_id){
         return respond(chat_id,
                 this.text_summary + this.short_format_simple_date(false,
-                        String.valueOf(this.date),
+                        this.date,
                         this.who,
                         this.whom,
                         Float.parseFloat(this.how_much),
@@ -148,13 +148,13 @@ public class FinanceManager extends W1nc3ntManager {
         }
     }
 
-    private String short_format_simple_date(boolean date_first, String date, String who, String whom, float how_much, String for_what){
-       if(date == ZonedDateTime.now().toLocalDate().toString()) {
+    private String short_format_simple_date(boolean date_first, LocalDate date, String who, String whom, float how_much, String for_what){
+       if(date.equals(LocalDate.now())) {
             return short_format(date_first, "heute", who, whom, how_much, for_what);
-       }else if(date == ZonedDateTime.now().toLocalDate().minusDays(1).toString()){
+       }else if(date.equals(LocalDate.now().minusDays(1))){
             return short_format(date_first, "gestern", who, whom, how_much, for_what);
        }else{
-           return short_format(date_first, date, who, whom, how_much, for_what);
+           return short_format(date_first, date.toString(), who, whom, how_much, for_what);
        }
     }
 
@@ -311,7 +311,7 @@ public class FinanceManager extends W1nc3ntManager {
                     responce+="\n";
                 }
                 responce += short_format_simple_date(true,
-                        String.valueOf(transaction.getWhen()),
+                        transaction.getWhen(),
                         transaction.getWho(),
                         transaction.getWhom(),
                         transaction.getHow_much(),
@@ -382,9 +382,9 @@ public class FinanceManager extends W1nc3ntManager {
        this.is_engaged = true;
        Transaction prev_transaction = this.transactionsRepository.findTopByOrderByIdDesc();
        String prev_transaction_short = this.short_format_simple_date(false,
-               prev_transaction.getWho(),
+               prev_transaction.getWhen(),
                prev_transaction.getWhom(),
-               String.valueOf(prev_transaction.getWhen()),
+               prev_transaction.getWho(),
                prev_transaction.getHow_much(),
                prev_transaction.getFor_what());
        this.set_state("cancel", update.getMessage().getChatId());
