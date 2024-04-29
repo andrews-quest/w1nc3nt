@@ -3,6 +3,8 @@ package com.space_asians.w1ncent.entities;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Entity
 @Data
 @Table(name = "transactions")
@@ -14,7 +16,7 @@ public class Transaction {
     private int id;
 
     @Column(name = "`when`")
-    private String when;
+    private LocalDate when;
     @Column
     private String who;
     @Column

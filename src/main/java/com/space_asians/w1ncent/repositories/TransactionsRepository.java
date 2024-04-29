@@ -15,10 +15,13 @@ public interface TransactionsRepository extends CrudRepository<Transaction, Inte
      // @Query("SELECT * FROM TRANSACTIONS WHERE WHO=\"Firuz\"")
      // public List<String> findAllByMember();
 
+    @Query(value = "SELECT * FROM transactions ORDER BY `when` ASC", nativeQuery = true)
+    public Iterable<Transaction> findAllOrderByWhenAsc();
+
     public Transaction findTopByOrderByIdDesc();
 
     public Iterable<Transaction> findAllByWho(String who);
 
-    @Query(value = "SELECT * FROM transactions WHERE who= ?1 OR whom=?1", nativeQuery = true)
+    @Query(value = "SELECT * FROM transactions WHERE who= ?1 OR whom=?1 ORDER BY `when` ASC", nativeQuery = true)
     public Iterable<Transaction> findHistory(String member);
 }

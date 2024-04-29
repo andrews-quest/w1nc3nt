@@ -5,6 +5,7 @@ import com.space_asians.w1ncent.repositories.MembersRepository;
 import com.space_asians.w1ncent.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -12,7 +13,11 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Component
@@ -26,7 +31,7 @@ public class FinanceManager extends W1nc3ntManager {
     private TransactionsRepository transactionsRepository;
     @Autowired
     private MembersRepository membersRepository;
-    private String date;
+    private LocalDate date;
     private String who;
     private String whom;
     private String how_much;
@@ -67,6 +72,8 @@ public class FinanceManager extends W1nc3ntManager {
     private String text_cancel_no;
     @Value("${text.error.db}")
     private String text_error_db;
+    @Value("${text.error.date}")
+    private String text_error_date;
     @Value("${text.finance.summary}")
     private String text_summary;
 
@@ -125,7 +132,7 @@ public class FinanceManager extends W1nc3ntManager {
     private SendMessage summary(long chat_id){
         return respond(chat_id,
                 this.text_summary + this.short_format_simple_date(false,
-                        this.date,
+                        String.valueOf(this.date),
                         this.who,
                         this.whom,
                         Float.parseFloat(this.how_much),
@@ -213,28 +220,33 @@ public class FinanceManager extends W1nc3ntManager {
             if(date == null){
 
                 if(this.custom_date){
-                    if(text.matches("\\d\\d \\d\\d|\\d\\d-\\d\\d")){
-                        this.date = text;
+                    if(text.matches(" *\\d\\d +\\d\\d *|\\d\\d-\\d\\d")){
+                        String[] day_and_month = text.split(" |-");
+                        try{
+                            this.date = LocalDate.parse("2024-" + text);
+                        }catch (DateTimeParseException e){
+                            return this.respond(chat_id, this.text_error_date, null);
+                        }
                     }else{
-                        return this.respond(chat_id, text_false_date, null);
+                        return this.respond(chat_id, this.text_false_date, null);
                     }
                     this.custom_date = false;
-                    return this.respond(chat_id, text_who, whoMarkup);
+                    return this.respond(chat_id, this.text_who, whoMarkup);
                 }
 
                 if(update.hasMessage() && !Objects.equals(update.getMessage().getText(), "/finances_update")){
                     if(text.equalsIgnoreCase("Ja")){
-                        this.date = String.valueOf(ZonedDateTime.now().toLocalDate());
-                        return this.respond(chat_id, text_who, this.whoMarkup);
+                        this.date = LocalDate.now();
+                        return this.respond(chat_id, this.text_who, this.whoMarkup);
                     }else if(text.equalsIgnoreCase("Nein")) {
                         this.custom_date = true;
-                        return this.respond(chat_id, text_ask_date, null);
+                        return this.respond(chat_id, this.text_ask_date, null);
                     }else{
-                        return this.respond(chat_id, text_false_input,null);
+                        return this.respond(chat_id, this.text_false_input,null);
                     }
                 }
 
-                return this.respond(chat_id, text_date, this.create_yes_no_markup(true));
+                return this.respond(chat_id, this.text_date, this.create_yes_no_markup(true));
 
             }
 
@@ -242,27 +254,27 @@ public class FinanceManager extends W1nc3ntManager {
 
                 if(update.hasMessage()){
                     this.who = text;
-                    return this.respond(chat_id, text_whom, create_who_markup(false, false, this.who));
+                    return this.respond(chat_id, this.text_whom, create_who_markup(false, false, this.who));
                 }
-                return this.respond(chat_id, text_who, this.whoMarkup);
+                return this.respond(chat_id, this.text_who, this.whoMarkup);
             }
 
             if(this.whom == null){
 
                 if(update.hasMessage()){
                     this.whom = text;
-                    return this.respond(chat_id, text_how_much, null);
+                    return this.respond(chat_id, this.text_how_much, null);
                 }
-                return this.respond(chat_id, text_whom, null);
+                return this.respond(chat_id, this.text_whom, null);
             }
 
             if(this.how_much == null){
 
                 if(update.hasMessage()){
                     this.how_much = text;
-                    return this.respond(chat_id, text_for_what, null);
+                    return this.respond(chat_id, this.text_for_what, null);
                 }
-                return this.respond(chat_id, text_how_much, null);
+                return this.respond(chat_id, this.text_how_much, null);
             }
 
             if(this.for_what == null){
@@ -273,33 +285,39 @@ public class FinanceManager extends W1nc3ntManager {
                     if(this.db_save()){
                         return this.summary(chat_id);
                     }else{
-                        return this.respond(chat_id, text_error_db, null);
+                        return this.respond(chat_id, this.text_error_db, null);
                     }
                 }
-                return this.respond(chat_id, text_for_what, null);
+                return this.respond(chat_id, this.text_for_what, null);
             }
         }
 
         if(this.get_state(chat_id).equals("history")){
             this.is_engaged = false;
             this.who = update.getMessage().getText();
-            String responce = null;
+            String responce = "";
             Iterable<Transaction> transactions;
             if(this.who.equalsIgnoreCase("Alle")){
-                transactions = this.transactionsRepository.findAll();
+                transactions = this.transactionsRepository.findAllOrderByWhenAsc();
             }else if(Arrays.stream(this.members).toList().contains(this.who)){
                 transactions = this.transactionsRepository.findHistory(this.who);
             }else{
                 return respond(chat_id, this.text_false_input, null);
             }
+
+            LocalDate previous_date = null;
             for (Transaction transaction : transactions){
+                if(!transaction.getWhen().equals(previous_date)){
+                    responce+="\n";
+                }
                 responce += short_format_simple_date(true,
-                        transaction.getWhen(),
+                        String.valueOf(transaction.getWhen()),
                         transaction.getWho(),
                         transaction.getWhom(),
                         transaction.getHow_much(),
                         transaction.getFor_what());
                 responce += "\n";
+                previous_date = transaction.getWhen();
             }
             return respond(chat_id, responce,null);
         }
@@ -366,7 +384,7 @@ public class FinanceManager extends W1nc3ntManager {
        String prev_transaction_short = this.short_format_simple_date(false,
                prev_transaction.getWho(),
                prev_transaction.getWhom(),
-               prev_transaction.getWhen(),
+               String.valueOf(prev_transaction.getWhen()),
                prev_transaction.getHow_much(),
                prev_transaction.getFor_what());
        this.set_state("cancel", update.getMessage().getChatId());
