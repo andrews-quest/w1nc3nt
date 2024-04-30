@@ -12,7 +12,7 @@
 	<artifactId>w1ncent</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>w1ncent</name>
-	<description>Demo project for Spring Boot</description>
+	<description>A bot-butler.</description>
 	<properties>
 		<java.version>22</java.version>
 	</properties>
@@ -26,6 +26,14 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.freefair.lombok</groupId>
+			<artifactId>io.freefair.lombok.gradle.plugin</artifactId>
+			<version>8.6</version>
+			<type>pom</type>
 		</dependency>
 
 		<dependency>
@@ -67,8 +75,6 @@
 				<configuration>
 					<excludes>
 						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
 				</configuration>
