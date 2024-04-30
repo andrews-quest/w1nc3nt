@@ -13,10 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
@@ -90,7 +87,23 @@ public class FinanceManager extends W1nc3ntManager {
     private ReplyKeyboardMarkup whoMarkup;
     private ReplyKeyboardMarkup whomMarkup;
 
-   private void create_markups() {
+
+    private SendMessage custom_date(String text, Long chat_id){
+        if(text.matches(" *\\d\\d[ +|/|-]\\d\\d *")){
+            String[] day_and_month = text.split(" |-");
+            int year = LocalDate.now().getYear();
+            try{
+                this.date = LocalDate.of(year, Integer.parseInt(day_and_month[1]), Integer.parseInt(day_and_month[0]));
+            }catch (DateTimeException e){
+                return this.respond(chat_id, this.text_error_date, null);
+            }
+            this.custom_date = false;
+            return this.respond(chat_id, this.text_who, this.whoMarkup);
+        }else{
+            return this.respond(chat_id, this.text_false_date, null);
+        }
+    }
+    private void create_markups() {
 
        // date Markup
 
@@ -147,10 +160,12 @@ public class FinanceManager extends W1nc3ntManager {
     }
 
     private String short_format(boolean date_first, String date, String who, String whom, float how_much, String for_what){
+        who = who.substring(0,1);
+        whom = whom.substring(0,1);
         if (date_first) {
             return String.format("%s %s -> %s %.2f€ für %s", date, who, whom, how_much, for_what);
         } else {
-            return String.format("%s -> %s %.2f€ für %s am %s", who, whom, how_much, for_what, date);
+            return String.format("%s -> %s %.2f€ für %s %s", who, whom, how_much, for_what, date);
         }
     }
 
@@ -160,7 +175,8 @@ public class FinanceManager extends W1nc3ntManager {
        }else if(date.equals(LocalDate.now().minusDays(1))){
             return short_format(date_first, "gestern", who, whom, how_much, for_what);
        }else{
-           return short_format(date_first, date.toString(), who, whom, how_much, for_what);
+           String date_str = date.format(this.dateFormatterPartial);
+           return short_format(date_first, date_str, who, whom, how_much, for_what);
        }
     }
 
@@ -226,18 +242,7 @@ public class FinanceManager extends W1nc3ntManager {
             if(date == null){
 
                 if(this.custom_date){
-                    if(text.matches(" *\\d\\d +\\d\\d *|\\d\\d-\\d\\d")){
-                        String[] day_and_month = text.split(" |-");
-                        try{
-                            this.date = LocalDate.parse("2024-" + text);
-                        }catch (DateTimeParseException e){
-                            return this.respond(chat_id, this.text_error_date, null);
-                        }
-                    }else{
-                        return this.respond(chat_id, this.text_false_date, null);
-                    }
-                    this.custom_date = false;
-                    return this.respond(chat_id, this.text_who, whoMarkup);
+                    return this.custom_date(text, chat_id);
                 }
 
                 if(update.hasMessage() && !Objects.equals(text, "/finances_update")){

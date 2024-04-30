@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +34,9 @@ public class W1nc3ntManager {
     protected TransactionsRepository transactionsRepository;
 
     public boolean is_engaged = false;
+
+    protected DateTimeFormatter dateFormatterPartial = DateTimeFormatter.ofPattern("dd-MM");
+    protected DateTimeFormatter dateFormatterFull = DateTimeFormatter.ofPattern("dd-MM-uuuu");
 
     // protected Update update = null;
     // protected Message message = null;
