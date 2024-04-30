@@ -17,6 +17,8 @@ import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+
 @Component
 public class FinanceManager extends W1nc3ntManager {
 
@@ -71,6 +73,8 @@ public class FinanceManager extends W1nc3ntManager {
     private String text_error_db;
     @Value("${text.error.date}")
     private String text_error_date;
+    @Value("${text.error.date.boundaries}")
+    private String text_error_date_boundaries;
     @Value("${text.error.unknown_member}")
     private String text_unknown_member;
     @Value("${text.error.sum_format}")
@@ -91,12 +95,22 @@ public class FinanceManager extends W1nc3ntManager {
     private SendMessage custom_date(String text, Long chat_id){
         if(text.matches(" *\\d\\d[ +|/|-]\\d\\d *")){
             String[] day_and_month = text.split(" |-");
-            int year = LocalDate.now().getYear();
+            LocalDate now = LocalDate.now();
+            int year = now.getYear();
+
             try{
                 this.date = LocalDate.of(year, Integer.parseInt(day_and_month[1]), Integer.parseInt(day_and_month[0]));
             }catch (DateTimeException e){
                 return this.respond(chat_id, this.text_error_date, null);
             }
+
+            if(DAYS.between(this.date, now) > 2 || DAYS.between(this.date, now) < -7){
+                this.date = null;
+                return respond(chat_id,
+                        String.format(this.text_error_date_boundaries, now.minusDays(7), now.plusDays(2)),
+                        null);
+            }
+
             this.custom_date = false;
             return this.respond(chat_id, this.text_who, this.whoMarkup);
         }else{
