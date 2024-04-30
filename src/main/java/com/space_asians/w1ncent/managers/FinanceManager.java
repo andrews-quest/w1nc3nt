@@ -5,7 +5,6 @@ import com.space_asians.w1ncent.repositories.MembersRepository;
 import com.space_asians.w1ncent.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -14,7 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.time.*;
-import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -104,10 +103,12 @@ public class FinanceManager extends W1nc3ntManager {
                 return this.respond(chat_id, this.text_error_date, null);
             }
 
-            if(DAYS.between(this.date, now) > 2 || DAYS.between(this.date, now) < -7){
+            if(this.date.until(now, DAYS) < -2 || this.date.until(now, DAYS) > 7){
                 this.date = null;
                 return respond(chat_id,
-                        String.format(this.text_error_date_boundaries, now.minusDays(7), now.plusDays(2)),
+                        String.format(this.text_error_date_boundaries,
+                                now.minusDays(7).format(this.dateFormatterPartial),
+                                now.plusDays(2).format(this.dateFormatterPartial)),
                         null);
             }
 
