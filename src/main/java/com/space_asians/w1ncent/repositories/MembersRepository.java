@@ -46,10 +46,10 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     public void updateStateManager(String state_manager, Long chat_id);
 
     @Modifying
-    @Query(value= "UPDATE Members SET state=\"none\"", nativeQuery = true)
+    @Query(value= "UPDATE members SET state=\"none\"", nativeQuery = true)
     public void dropState();
 
     @Modifying
-    @Query(value= "UPDATE Members SET state_manager=\"none\"", nativeQuery = true)
+    @Query(value= "UPDATE members SET state_manager=\"none\"", nativeQuery = true)
     public void dropStateManager();
 }

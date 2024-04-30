@@ -5,7 +5,6 @@ target/
 !**/src/test/**/target/
 config.txt
 avatar.png
-avatar_.png
 avatar_text.png
 src/main/resources/application.sensitive_properties
 bfg-1.14.0.jar

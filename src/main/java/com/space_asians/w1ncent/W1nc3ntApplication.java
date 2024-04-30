@@ -13,10 +13,10 @@ import org.springframework.context.annotation.Primary;
 @Primary
 public class W1nc3ntApplication implements ApplicationRunner {
 
-	@Value("${telegram.bot.test_token}")
+	@Value("${telegram.bot.token}")
 	String token;
 
-	@Value("${telegram.bot.group.test_token}")
+	@Value("${telegram.bot.group.token}")
 	String group_token;
 
 	@Autowired

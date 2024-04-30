@@ -15,7 +15,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 public class W1nc3ntGroupBot extends W1nc3ntBot {
     @Value("${telegram.bot.username}")
     private String username;
-    @Value("${telegram.bot.group.test_token}")
+    @Value("${telegram.bot.group.token}")
     private String token;
 
     @PostConstruct
