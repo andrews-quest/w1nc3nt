@@ -18,44 +18,19 @@ public class W1nc3ntPrivateBot extends W1nc3ntBot {
     private String username;
     @Value("${telegram.bot.token}")
     private String token;
+    @Value("${telegram.bot.test_token}")
+    private String test_token;
 
     @PostConstruct
     public void init(){
+        String token;
+        if(this.env.equalsIgnoreCase("DEV")){
+            token =  this.test_token;
+        }else{
+            token = this.token;
+        }
         this.telegramClient = new OkHttpTelegramClient(token);
     }
-    protected TelegramClient telegramClient;
 
     private boolean is_private = true;
-
-
-
-
-    @Override
-    public void consume(Update update) {
-
-
-        if(this.current_manager != null){
-            this.sm = this.current_manager.consume(update);
-        }else if (update.hasMessage() && update.getMessage().hasText()) {
-            this.current_manager = null;
-            this.sm = handle_commands(update);
-        }
-
-
-        if(this.sm != null) {
-            try {
-                this.telegramClient.execute(this.sm);
-            } catch (TelegramApiException e) {
-                this.mainManager.error(update);
-            }
-        }
-
-        this.sm = null;
-        if(this.current_manager != null && this.current_manager.is_engaged == false){
-            this.current_manager.end(update.getMessage().getChatId());
-            this.current_manager = null;
-        }
-
-    }
-
 }

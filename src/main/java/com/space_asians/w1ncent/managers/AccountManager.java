@@ -28,6 +28,11 @@ public class AccountManager extends W1nc3ntManager{
     @Value("${text.account.log_out}")
     private String text_log_out;
 
+    public AccountManager(){
+        super.state_name = "account";
+    }
+
+
 
     public boolean is_logged_in(Update update){
         Long chat_id = update.getMessage().getChatId();

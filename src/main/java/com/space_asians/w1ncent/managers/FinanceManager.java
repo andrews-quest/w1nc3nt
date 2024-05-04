@@ -83,6 +83,10 @@ public class FinanceManager extends W1nc3ntManager {
     @Value("${text.finance.summary}")
     private String text_summary;
 
+    public FinanceManager(){
+        super.state_name = "finance";
+    }
+
 
 
     // Reply Keyboard Markups

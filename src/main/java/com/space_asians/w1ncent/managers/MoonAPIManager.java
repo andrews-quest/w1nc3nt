@@ -26,8 +26,12 @@ public class MoonAPIManager extends W1nc3ntManager {
     @Value("${text.moon_api.failure}")
     private String text_failure;
 
-     @Value("${text.moon_api.basic_moonapi_responce}")
-     private String text_basic_responce;
+    @Value("${text.moon_api.basic_moonapi_responce}")
+    private String text_basic_responce;
+
+    public MoonAPIManager(){
+        super.state_name = "moon_api";
+    }
 
     public String decipherMoonAPIBasic(String body){
         JSONObject body_json = new JSONObject(body);

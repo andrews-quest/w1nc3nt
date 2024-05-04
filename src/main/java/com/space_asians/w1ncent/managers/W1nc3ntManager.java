@@ -34,6 +34,7 @@ public class W1nc3ntManager {
     protected TransactionsRepository transactionsRepository;
 
     public boolean is_engaged = false;
+    protected String state_name = null;
 
     protected DateTimeFormatter dateFormatterPartial = DateTimeFormatter.ofPattern("dd-MM");
     protected DateTimeFormatter dateFormatterFull = DateTimeFormatter.ofPattern("dd-MM-uuuu");
@@ -44,6 +45,9 @@ public class W1nc3ntManager {
 
     @Value("${text.error.default_manager}")
     protected String text_error_default_manager;
+
+    @Value("${text.error.state_undefined}")
+    protected String text_error_state_undefined;
 
     protected SendMessage respond(long chat_id, String text, ReplyKeyboardMarkup markup){
         return SendMessage
@@ -78,6 +82,10 @@ public class W1nc3ntManager {
         }
         ReplyKeyboardMarkup YesNoMarkup = new ReplyKeyboardMarkup(keyboard);
         return YesNoMarkup;
+    }
+
+    public String get_name(){
+        return this.state_name != null ? this.state_name : this.text_error_state_undefined;
     }
 
     protected String get_state(Long chat_id){

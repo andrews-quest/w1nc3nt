@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Service
 public class MainManager extends W1nc3ntManager {
 
+
     @Value("${text.main.start}")
     private String text_start;
     @Value("${text.main.false_start}")
@@ -25,6 +26,19 @@ public class MainManager extends W1nc3ntManager {
     private String text_error;
     @Value("${text.account.not_authenticated}")
     private String text_not_authenticated;
+
+    public MainManager(){
+        super.state_name = "none";
+    }
+
+
+    public String current_state(Long chat_id){
+        return this.membersRepository.findByChatId(chat_id).getState();
+    }
+
+    public void set_state(String state, Long chat_id){
+        this.membersRepository.updateState(state, chat_id);
+    }
 
     public SendMessage start(Update update, boolean is_logged_in){
         if(is_logged_in){
@@ -46,6 +60,7 @@ public class MainManager extends W1nc3ntManager {
     public SendMessage error(Update update){
         return this.respond(update.getMessage().getChatId(), this.text_error, null);
     }
+
 
     public SendMessage unknown(Update update){
         return this.respond(update.getMessage().getChatId(), this.text_unknown_command, null);

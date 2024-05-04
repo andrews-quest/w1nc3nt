@@ -1,19 +1,37 @@
 package com.space_asians.w1ncent.bots;
 
 import com.space_asians.w1ncent.managers.*;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+import java.util.HashMap;
 
 @Component
 public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
-    private String token = null;
+    @Value("${environment}")
+    protected String env;
+
+    protected TelegramClient telegramClient;
+
+    protected HashMap<String, W1nc3ntManager> managers = new HashMap<>();
+
+    @PostConstruct
+    public void init_managers(){
+        this.managers.put(this.mainManager.get_name(), this.mainManager);
+        this.managers.put(this.financeManager.get_name(), this.financeManager);
+        this.managers.put(this.moonAPIManager.get_name(), this.moonAPIManager);
+        this.managers.put(this.accountManager.get_name(), this.accountManager);
+    }
 
 
-    protected W1nc3ntManager current_manager;
     @Autowired
     protected FinanceManager financeManager;
     @Autowired
@@ -27,16 +45,20 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
     protected boolean is_private = false;
 
+    protected W1nc3ntManager get_manager(String manager){
+        return this.managers.get(manager);
+    }
 
     protected SendMessage handle_commands(Update update) {
         String text = update.getMessage().getText();
+        Long chat_id = update.getMessage().getChatId();
 
         if(this.is_private = true){
             if (text.equals("/finances_update")) {
-                this.current_manager = this.financeManager;
+                this.mainManager.set_state(this.financeManager.get_name(), chat_id);
                 return this.financeManager.update(update);
             }else if (text.equals("/finances_cancel_last")) {
-                this.current_manager = this.financeManager;
+                this.mainManager.set_state(this.financeManager.get_name(), chat_id);
                 return this.financeManager.cancel_last(update);
             }
         }
@@ -72,7 +94,7 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
         else if (text.equals("/finances_check")) {
             return this.financeManager.check(update);
         } else if (text.equals("/finances_history")) {
-            this.current_manager = this.financeManager;
+            this.mainManager.set_state(this.financeManager.get_name(), chat_id);
             return this.financeManager.history(update);
         }  else if (text.equals("/lunar_digest")) {
             return this.moonAPIManager.consume(update);
@@ -87,6 +109,31 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
     @Override
     public void consume(Update update) {
+        Long chat_id = update.getMessage().getChatId();
+
+        // a manager is engaged
+        if(!this.mainManager.current_state(chat_id).equals(mainManager.get_name())){
+            this.sm = this.get_manager(this.mainManager.current_state(chat_id)).consume(update);
+        }else if (update.hasMessage() && update.getMessage().hasText()) {
+            this.sm = handle_commands(update);
+        }
+
+        // send a respective message
+        if(this.sm != null) {
+            try {
+                this.telegramClient.execute(this.sm);
+            } catch (TelegramApiException e) {
+                this.mainManager.error(update);
+            }
+        }
+
+        this.sm = null;
+        if(!this.mainManager.current_state(chat_id).equals(this.mainManager.get_name())
+                && this.get_manager(this.mainManager.current_state(chat_id)).is_engaged == false){
+            this.get_manager(this.mainManager.current_state(chat_id)).end(update.getMessage().getChatId());
+            this.mainManager.set_state(this.mainManager.get_name(), chat_id);
+        }
 
     }
+
 }
