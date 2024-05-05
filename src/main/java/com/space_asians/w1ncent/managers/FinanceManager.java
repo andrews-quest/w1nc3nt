@@ -397,6 +397,7 @@ public class FinanceManager extends W1nc3ntManager {
         this.whom = null;
         this.how_much = 0;
         this.for_what = null;
+        this.custom_date = false;
     }
 
     public SendMessage update(Update update){
