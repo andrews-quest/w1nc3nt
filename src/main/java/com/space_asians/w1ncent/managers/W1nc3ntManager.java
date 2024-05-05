@@ -89,7 +89,7 @@ public class W1nc3ntManager {
     }
 
     protected String get_state(Long chat_id){
-        Member member = this.membersRepository.findByChatId(chat_id);
+        Member member = this.membersRepository.findByChatId(chat_id).orElse(null);
         return member.getState_manager();
     }
 

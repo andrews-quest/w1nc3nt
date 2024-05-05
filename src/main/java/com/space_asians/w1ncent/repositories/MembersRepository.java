@@ -24,7 +24,7 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
 
 
     @Query(value = "SELECT * FROM members WHERE chat_id = ?1", nativeQuery = true)
-    public Member findByChatId(Long chat_id);
+    public Optional<Member> findByChatId(Long chat_id);
 
     public Member findByPassword(String password);
 

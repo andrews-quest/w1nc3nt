@@ -33,7 +33,7 @@ public class MainManager extends W1nc3ntManager {
 
 
     public String current_state(Long chat_id){
-        return this.membersRepository.findByChatId(chat_id).getState();
+        return this.membersRepository.findByChatId(chat_id).orElse(null).getState();
     }
 
     public void set_state(String state, Long chat_id){

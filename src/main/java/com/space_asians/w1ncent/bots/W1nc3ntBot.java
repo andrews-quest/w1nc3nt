@@ -116,7 +116,8 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
         System.out.println("----> text    : " + update.getMessage().getText());
 
         // a manager is engaged
-        if(!this.mainManager.current_state(chat_id).equals(mainManager.get_name())){
+        if(!this.mainManager.current_state(chat_id).equals(mainManager.get_name()) &
+        this.accountManager.is_logged_in(update)){
             this.sm = this.get_manager(this.mainManager.current_state(chat_id)).consume(update);
         }else if (update.hasMessage() && update.getMessage().hasText()) {
             this.sm = handle_commands(update);

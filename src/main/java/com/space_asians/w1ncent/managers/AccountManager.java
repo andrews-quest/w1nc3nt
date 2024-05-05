@@ -36,7 +36,7 @@ public class AccountManager extends W1nc3ntManager{
 
     public boolean is_logged_in(Update update){
         Long chat_id = update.getMessage().getChatId();
-        Member member = this.membersRepository.findByChatId(chat_id);
+        Member member = this.membersRepository.findByChatId(chat_id).orElse(null);
         return member == null ? false : true;
     }
 
@@ -60,7 +60,7 @@ public class AccountManager extends W1nc3ntManager{
     }
 
     public String get_account_info(Long chat_id){
-        Member member = this.membersRepository.findByChatId(chat_id);
+        Member member = this.membersRepository.findByChatId(chat_id).orElse(null);
         String name = member.getName();
         return String.format(this.text_info, name);
     }
