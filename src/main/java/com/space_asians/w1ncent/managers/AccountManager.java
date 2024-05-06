@@ -27,6 +27,8 @@ public class AccountManager extends W1nc3ntManager{
     private String text_info;
     @Value("${text.account.log_out}")
     private String text_log_out;
+    @Value("${text.account.log_out_cancel}")
+    private String text_log_out_cancel;
 
     public AccountManager(){
         super.state_name = "account";
@@ -51,8 +53,18 @@ public class AccountManager extends W1nc3ntManager{
         }
     }
 
-    public SendMessage options(Update update){
+    public SendMessage consume(Update update){
         Long chat_id = update.getMessage().getChatId();
+        if(update.getMessage().getText().equalsIgnoreCase("Ja")){
+            this.log_out(update);
+            this.end(chat_id);
+            return respond(chat_id, this.text_log_out, null);
+        }else if(update.getMessage().getText().equalsIgnoreCase("Nein")){
+            this.end(chat_id);
+            return respond(chat_id, this.text_log_out_cancel, null);
+        }
+
+        this.is_engaged = true;
         String account_info = this.get_account_info(chat_id);
         return respond(update.getMessage().getChatId(),
                 account_info + this.text_options,

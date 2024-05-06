@@ -12,6 +12,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.Optional;
 
 @Component
 public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
@@ -25,10 +27,12 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
     @PostConstruct
     public void init_managers(){
-        this.managers.put(this.mainManager.get_name(), this.mainManager);
+        // this.managers.put(this.mainManager.get_name(), this.mainManager);
         this.managers.put(this.financeManager.get_name(), this.financeManager);
         this.managers.put(this.moonAPIManager.get_name(), this.moonAPIManager);
         this.managers.put(this.accountManager.get_name(), this.accountManager);
+
+        this.notify_master();
     }
 
 
@@ -45,8 +49,12 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
     protected boolean is_private = false;
 
-    protected W1nc3ntManager get_manager(String manager){
-        return this.managers.get(manager);
+    protected SendMessage notify_master(){
+        return null;
+    }
+
+    protected Optional<W1nc3ntManager> get_manager(String manager){
+        return Optional.ofNullable(this.managers.get(manager));
     }
 
     protected SendMessage handle_commands(Update update) {
@@ -75,7 +83,8 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
         if(text.equals("/account")){
             if(is_logged_in){
-                return this.accountManager.options(update);
+                this.mainManager.set_state(this.accountManager.get_name(), chat_id);
+                return this.accountManager.consume(update);
             }else{
                 return this.accountManager.authenticate(update);
             }
@@ -116,9 +125,9 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
         System.out.println("----> text    : " + update.getMessage().getText());
 
         // a manager is engaged
-        if(!this.mainManager.current_state(chat_id).equals(mainManager.get_name()) &
+        if(!Objects.equals(this.mainManager.current_state(chat_id), mainManager.get_name()) &
         this.accountManager.is_logged_in(update)){
-            this.sm = this.get_manager(this.mainManager.current_state(chat_id)).consume(update);
+            this.sm = this.get_manager(this.mainManager.current_state(chat_id)).orElseGet(null).consume(update);
         }else if (update.hasMessage() && update.getMessage().hasText()) {
             this.sm = handle_commands(update);
         }
@@ -133,11 +142,14 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
         }
 
         this.sm = null;
-        if(!this.mainManager.current_state(chat_id).equals(this.mainManager.get_name())
-                && this.get_manager(this.mainManager.current_state(chat_id)).is_engaged == false){
-            this.get_manager(this.mainManager.current_state(chat_id)).end(update.getMessage().getChatId());
-            this.mainManager.set_state(this.mainManager.get_name(), chat_id);
+        if(this.get_manager(this.mainManager.current_state(chat_id)).orElse(null) != null){
+            if(!Objects.equals(this.mainManager.current_state(chat_id), this.mainManager.get_name())
+                    && this.get_manager(this.mainManager.current_state(chat_id)).get().is_engaged == false){
+                this.get_manager(this.mainManager.current_state(chat_id)).orElse(this.mainManager).end(update.getMessage().getChatId());
+                this.mainManager.set_state(this.mainManager.get_name(), chat_id);
+            }
         }
+
 
     }
 

@@ -1,5 +1,6 @@
 package com.space_asians.w1ncent.managers;
 
+import com.space_asians.w1ncent.entities.Member;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -33,7 +34,8 @@ public class MainManager extends W1nc3ntManager {
 
 
     public String current_state(Long chat_id){
-        return this.membersRepository.findByChatId(chat_id).orElse(null).getState();
+        Member member = this.membersRepository.findByChatId(chat_id).orElse(null);
+        return member != null ? member.getState() : null;
     }
 
     public void set_state(String state, Long chat_id){
