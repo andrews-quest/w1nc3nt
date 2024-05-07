@@ -87,14 +87,6 @@ public class FinanceManager extends W1nc3ntManager {
         super.state_name = "finance";
     }
 
-
-
-    // Reply Keyboard Markups
-    private ReplyKeyboardMarkup YesNoMarkup;
-    private ReplyKeyboardMarkup whoMarkup;
-    private ReplyKeyboardMarkup whomMarkup;
-
-
     private SendMessage custom_date(String text, Long chat_id){
         if(text.matches(" *\\d\\d[ +|/|-]\\d\\d *")){
             String[] day_and_month = text.split(" |-");
@@ -117,34 +109,13 @@ public class FinanceManager extends W1nc3ntManager {
             }
 
             this.custom_date = false;
-            return this.respond(chat_id, this.text_who, this.whoMarkup);
+            return this.respond(chat_id, this.text_who, this.create_who_markup(false, true, null));
         }else{
             return this.respond(chat_id, this.text_false_date, null);
         }
     }
-    private void create_markups() {
 
-       // date Markup
-
-       List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
-       KeyboardRow row = new KeyboardRow();
-
-       row.add("Firuz");
-       row.add("Dasha");
-       row.add("Nikita");
-       keyboard.add(row);
-
-       row = new KeyboardRow();
-       row.add("Katia");
-       row.add("Andrii");
-       row.add("Beenden");
-
-       keyboard.add(row);
-       this.whoMarkup = new ReplyKeyboardMarkup(keyboard);
-
-   }
-
-   private ReplyKeyboardMarkup create_who_markup(boolean is_inline, boolean include_all_button, String excluded_member){
+   private ReplyKeyboardMarkup create_who_markup(boolean all_selection, boolean multiple_selection, String excluded_member){
        List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
        KeyboardRow row = new KeyboardRow();
        for(String member : Arrays.copyOfRange(this.members, 0, 2)){
@@ -159,11 +130,17 @@ public class FinanceManager extends W1nc3ntManager {
        keyboard.add(row);
 
        row = new KeyboardRow();
-       if(include_all_button){row.add("Alle");};
-       row.add("Beenden");
+       row.add("< Zurück");
+       if(multiple_selection){row.add("Mehrere");}
+       if(all_selection){row.add("Alle");}
+       row.add("X Beenden");
        keyboard.add(row);
-       whomMarkup = new ReplyKeyboardMarkup(keyboard);
-       return whomMarkup;
+
+       ReplyKeyboardMarkup whoMarkup = new ReplyKeyboardMarkup(keyboard);
+       whoMarkup.setResizeKeyboard(true);
+       whoMarkup.setIsPersistent(true);
+
+       return whoMarkup;
    }
 
 
@@ -267,7 +244,7 @@ public class FinanceManager extends W1nc3ntManager {
                 if(update.hasMessage() && !Objects.equals(text, "/finances_update")){
                     if(text.equalsIgnoreCase("Ja")){
                         this.date = LocalDate.now();
-                        return this.respond(chat_id, this.text_who, this.whoMarkup);
+                        return this.respond(chat_id, this.text_who, this.create_who_markup(false, true, null));
                     }else if(text.equalsIgnoreCase("Nein")) {
                         this.custom_date = true;
                         return this.respond(chat_id, this.text_ask_date, null);
@@ -290,7 +267,7 @@ public class FinanceManager extends W1nc3ntManager {
                         return this.respond(chat_id, this.text_unknown_member, null);
                     }
                 }
-                return this.respond(chat_id, this.text_who, this.whoMarkup);
+                return this.respond(chat_id, this.text_who, this.create_who_markup(false, true, null));
             }
 
             if(this.whom == null){
@@ -298,7 +275,7 @@ public class FinanceManager extends W1nc3ntManager {
                 if(update.hasMessage()){
                     if(Arrays.stream(this.members).toList().contains(text)){
                         this.whom = text;
-                        return this.respond(chat_id, this.text_how_much, null);
+                        return this.respond(chat_id, this.text_how_much, this.create_end_markup());
                     }else{
                         return this.respond(chat_id, this.text_unknown_member, null);
                     }
@@ -318,9 +295,9 @@ public class FinanceManager extends W1nc3ntManager {
                         this.how_much = 0;
                         return this.respond(chat_id, this.text_error_sum_negative, null);
                     }
-                    return this.respond(chat_id, this.text_for_what, null);
+                    return this.respond(chat_id, this.text_for_what, this.create_end_markup());
                 }
-                return this.respond(chat_id, this.text_how_much, null);
+                return this.respond(chat_id, this.text_how_much, this.create_end_markup());
             }
 
             if(this.for_what == null){
@@ -334,7 +311,7 @@ public class FinanceManager extends W1nc3ntManager {
                         return this.respond(chat_id, this.text_error_db, null);
                     }
                 }
-                return this.respond(chat_id, this.text_for_what, null);
+                return this.respond(chat_id, this.text_for_what, this.create_end_markup());
             }
         }
 
@@ -403,7 +380,6 @@ public class FinanceManager extends W1nc3ntManager {
     public SendMessage update(Update update){
         this.is_engaged = true;
         this.set_state("update", update.getMessage().getChatId());
-        this.create_markups();
         return this.consume(update);
     }
 
@@ -422,7 +398,7 @@ public class FinanceManager extends W1nc3ntManager {
        this.set_state("history", update.getMessage().getChatId());
        return respond(update.getMessage().getChatId(),
                this.text_history,
-               this.create_who_markup(true, true, null));
+               this.create_who_markup(true, false, null));
     }
 
     public SendMessage cancel_last(Update update){

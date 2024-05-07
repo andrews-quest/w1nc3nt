@@ -78,11 +78,25 @@ public class W1nc3ntManager {
         keyboard.add(row);
         row = new KeyboardRow();
         if(has_end_option){
-            row.add("Beenden");
+            row.add("X Beenden");
             keyboard.add(row);
         }
         ReplyKeyboardMarkup YesNoMarkup = new ReplyKeyboardMarkup(keyboard);
+        YesNoMarkup.setResizeKeyboard(true);
+        YesNoMarkup.setIsPersistent(true);
         return YesNoMarkup;
+    }
+
+    protected ReplyKeyboardMarkup create_end_markup(){
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow row = new KeyboardRow();
+        row.add("< Zurück");
+        row.add("X Beenden");
+        keyboard.add(row);
+        ReplyKeyboardMarkup EndMarkup = new ReplyKeyboardMarkup(keyboard);
+        EndMarkup.setResizeKeyboard(true);
+        EndMarkup.setIsPersistent(true);
+        return EndMarkup;
     }
 
     public String get_name(){
