@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.time.format.DateTimeFormatter;
@@ -54,7 +55,7 @@ public class W1nc3ntManager {
                .builder()
                .chatId(chat_id)
                .text(text)
-               .replyMarkup(markup)
+               .replyMarkup(markup == null ? new ReplyKeyboardRemove(true) : markup)
                .build();
     }
 
