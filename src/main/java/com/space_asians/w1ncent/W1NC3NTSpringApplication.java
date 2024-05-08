@@ -13,13 +13,9 @@ import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication
 public class W1NC3NTSpringApplication {
-
-
-
     public static void main(String[] args) {
 
         ConfigurableApplicationContext ctx = SpringApplication.run(W1NC3NTSpringApplication.class, args);
-        
 
     }
 }
