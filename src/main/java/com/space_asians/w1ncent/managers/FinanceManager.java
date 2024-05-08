@@ -31,11 +31,13 @@ public class FinanceManager extends W1nc3ntManager {
     private MembersRepository membersRepository;
     private LocalDate date;
     private String who;
-    private String whom;
+    private ArrayList<String> whom = new ArrayList<>();
     private float how_much;
     private String for_what;
 
     private boolean custom_date = false;
+    private boolean custom_multiple_members = false;
+    private ArrayList<String> excluded_members = new ArrayList<>();
 
     // SendMessage texts
     @Value("${text.finance.date}")
@@ -82,6 +84,10 @@ public class FinanceManager extends W1nc3ntManager {
     private String text_error_sum_negative;
     @Value("${text.finance.summary}")
     private String text_summary;
+    @Value("${text.finance.next_member}")
+    private String text_next_member;
+    @Value("${text.finance.multiple_members}")
+    private String text_multiple_members;
 
     public FinanceManager(){
         super.state_name = "finance";
@@ -109,23 +115,30 @@ public class FinanceManager extends W1nc3ntManager {
             }
 
             this.custom_date = false;
-            return this.respond(chat_id, this.text_who, this.create_who_markup(false, true, null));
+            return this.respond(chat_id, this.text_who, this.create_who_markup(
+                    false,
+                    true,
+                    false,
+                    null));
         }else{
             return this.respond(chat_id, this.text_false_date, null);
         }
     }
 
-   private ReplyKeyboardMarkup create_who_markup(boolean all_selection, boolean multiple_selection, String excluded_member){
+   private ReplyKeyboardMarkup create_who_markup(boolean all_selection,
+                                                 boolean multiple_selection,
+                                                 boolean continue_button,
+                                                 ArrayList<String> excluded_members){
        List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
        KeyboardRow row = new KeyboardRow();
        for(String member : Arrays.copyOfRange(this.members, 0, 2)){
-           if(!member.equals(excluded_member)){row.add(member);};
+           if(!this.excluded_members.contains(member)){row.add(member);};
        }
        keyboard.add(row);
 
        row = new KeyboardRow();
        for(String member : Arrays.copyOfRange(this.members, 2, this.members.length)){
-           if(!member.equals(excluded_member)){row.add(member);};
+           if(!this.excluded_members.contains(member)){row.add(member);};
        }
        keyboard.add(row);
 
@@ -134,6 +147,7 @@ public class FinanceManager extends W1nc3ntManager {
        if(multiple_selection){row.add("Mehrere");}
        if(all_selection){row.add("Alle");}
        row.add("X Beenden");
+       if(continue_button){row.add("Weiter >");}
        keyboard.add(row);
 
        ReplyKeyboardMarkup whoMarkup = new ReplyKeyboardMarkup(keyboard);
@@ -145,17 +159,19 @@ public class FinanceManager extends W1nc3ntManager {
 
 
     private SendMessage summary(long chat_id){
-        return respond(chat_id,
-                this.text_summary + this.short_format_simple_date(false,
-                        this.date,
-                        this.who,
-                        this.whom,
-                        this.how_much,
-                        this.for_what),
-                null);
+        String response = this.text_summary;
+        for(String member : this.whom){
+            response += this.short_format_simple_date(false,
+                    this.date,
+                    this.who,
+                    member,
+                    this.how_much,
+                    this.for_what);
+        }
+        return respond(chat_id, response,null);
     }
 
-    private String short_format(boolean date_first, String date, String who, String whom, float how_much, String for_what){
+    private String short_format(boolean date_first, String date, String who, String whom, Float how_much, String for_what){
         who = who.substring(0,1);
         whom = whom.substring(0,1);
         if (date_first) {
@@ -178,18 +194,22 @@ public class FinanceManager extends W1nc3ntManager {
 
     private boolean db_save(){
        try {
-           this.transaction.setWhen(this.date);
-           this.transaction.setWho(this.who);
-           this.transaction.setWhom(this.whom);
-           this.transaction.setHow_much(this.how_much);
-           this.transaction.setFor_what(this.for_what);
-           transactionsRepository.save(this.transaction);
+           Float sum_part = this.how_much / this.whom.size();
+           for(String member : whom){
+               this.transaction = new Transaction();
+               this.transaction.setWhen(this.date);
+               this.transaction.setWho(this.who);
+               this.transaction.setWhom(member);
+               this.transaction.setHow_much(sum_part);
+               this.transaction.setFor_what(this.for_what);
+               this.transactionsRepository.save(this.transaction);
 
-           float balance = this.membersRepository.findBalanceByName(this.who) - this.how_much;
-           this.membersRepository.updateBalance(this.who, balance);
+               float balance = this.membersRepository.findBalanceByName(this.who) - this.how_much;
+               this.membersRepository.updateBalance(this.who, balance);
 
-           balance = this.membersRepository.findBalanceByName(this.whom) + this.how_much;
-           this.membersRepository.updateBalance(this.whom, balance);
+               balance = this.membersRepository.findBalanceByName(member) + this.how_much;
+               this.membersRepository.updateBalance(member, balance);
+           }
            return true;
        }catch (Exception e){
            System.out.println(e);
@@ -201,12 +221,12 @@ public class FinanceManager extends W1nc3ntManager {
        try {
            this.transaction = this.transactionsRepository.findTopByOrderByIdDesc();
            this.who = this.transaction.getWho();
-           this.whom = this.transaction.getWhom();
+           this.whom.add(this.transaction.getWhom());
            float how_much = this.transaction.getHow_much();
            float who_balance = this.membersRepository.findBalanceByName(this.who);
-           float whom_balance = this.membersRepository.findBalanceByName(this.whom);
+           float whom_balance = this.membersRepository.findBalanceByName(this.whom.get(0));
            this.membersRepository.updateBalance(this.who, who_balance + how_much);
-           this.membersRepository.updateBalance(this.whom, whom_balance - how_much);
+           this.membersRepository.updateBalance(this.whom.get(0), whom_balance - how_much);
            this.transactionsRepository.deleteById(this.transaction.getId());
            return true;
        }catch (Exception e){
@@ -244,8 +264,11 @@ public class FinanceManager extends W1nc3ntManager {
                 if(update.hasMessage() && !Objects.equals(text, "/finances_update")){
                     if(text.equalsIgnoreCase("Ja")){
                         this.date = LocalDate.now();
-                        return this.respond(chat_id, this.text_who, this.create_who_markup(false, true, null));
-                    }else if(text.equalsIgnoreCase("Nein")) {
+                        return this.respond(chat_id, this.text_who, this.create_who_markup(false,
+                                false,
+                                false,
+                                null));
+                    }else if(text.equalsIgnoreCase("Nein")){
                         this.custom_date = true;
                         return this.respond(chat_id, this.text_ask_date, null);
                     }else{
@@ -262,20 +285,54 @@ public class FinanceManager extends W1nc3ntManager {
                 if(update.hasMessage()){
                     if(Arrays.stream(this.members).toList().contains(text)){
                         this.who = text;
-                        return this.respond(chat_id, this.text_whom, create_who_markup(false, false, this.who));
+                        this.excluded_members.add(who);
+                        return this.respond(chat_id, this.text_whom, create_who_markup(false,
+                                true,
+                                false,
+                                this.excluded_members));
                     }else{
                         return this.respond(chat_id, this.text_unknown_member, null);
                     }
                 }
-                return this.respond(chat_id, this.text_who, this.create_who_markup(false, true, null));
+                return this.respond(chat_id, this.text_who, this.create_who_markup(false,
+                        true,
+                        false,
+                        null));
             }
 
             if(this.whom == null){
 
                 if(update.hasMessage()){
+                    if(this.custom_multiple_members){
+                        if(text.equalsIgnoreCase("Weiter >")){
+                            this.whom = this.excluded_members;
+                            this.custom_multiple_members = false;
+                            return this.respond(chat_id,
+                                    this.text_how_much,
+                                    this.create_end_markup());
+                        }else if(Arrays.stream(this.members).toList().contains(text)){
+                            this.excluded_members.add(text);
+                            return this.respond(chat_id,
+                                    this.text_next_member,
+                                    this.create_who_markup(false, false, true, this.excluded_members));
+                        }else{
+                            return this.respond(chat_id,
+                                    this.text_false_input,
+                                    this.create_who_markup(true,
+                                            false,
+                                            true,
+                                            this.excluded_members));
+                        }
+                    }
+
                     if(Arrays.stream(this.members).toList().contains(text)){
-                        this.whom = text;
+                        this.whom.add(text);
                         return this.respond(chat_id, this.text_how_much, this.create_end_markup());
+                    }else if(text.equalsIgnoreCase("Mehrere")){
+                        this.custom_multiple_members = true;
+                        return this.respond(chat_id,
+                                this.text_multiple_members,
+                                this.create_who_markup(false, false, true, this.excluded_members));
                     }else{
                         return this.respond(chat_id, this.text_unknown_member, null);
                     }
@@ -333,6 +390,8 @@ public class FinanceManager extends W1nc3ntManager {
                 if(!transaction.getWhen().equals(previous_date)){
                     responce+="\n";
                 }
+                ArrayList<String> temp_whom = new ArrayList<>();
+                temp_whom.add(transaction.getWhom());
                 responce += short_format_simple_date(true,
                         transaction.getWhen(),
                         transaction.getWho(),
@@ -375,6 +434,8 @@ public class FinanceManager extends W1nc3ntManager {
         this.how_much = 0;
         this.for_what = null;
         this.custom_date = false;
+        this.custom_multiple_members = false;
+        this.excluded_members = new ArrayList<>();
     }
 
     public SendMessage update(Update update){
@@ -398,12 +459,14 @@ public class FinanceManager extends W1nc3ntManager {
        this.set_state("history", update.getMessage().getChatId());
        return respond(update.getMessage().getChatId(),
                this.text_history,
-               this.create_who_markup(true, false, null));
+               this.create_who_markup(true, false, false, null));
     }
 
     public SendMessage cancel_last(Update update){
        this.is_engaged = true;
        Transaction prev_transaction = this.transactionsRepository.findTopByOrderByIdDesc();
+       ArrayList<String> who_temp = new ArrayList<>();
+       who_temp.add(prev_transaction.getWho());
        String prev_transaction_short = this.short_format_simple_date(false,
                prev_transaction.getWhen(),
                prev_transaction.getWhom(),
