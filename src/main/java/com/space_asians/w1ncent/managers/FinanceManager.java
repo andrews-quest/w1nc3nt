@@ -13,7 +13,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.time.*;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -30,10 +29,10 @@ public class FinanceManager extends W1nc3ntManager {
     @Autowired
     private MembersRepository membersRepository;
     private LocalDate date;
-    private String who;
     private ArrayList<String> whom = new ArrayList<>();
     private float how_much;
     private String for_what;
+
 
     private boolean custom_date = false;
     private boolean custom_multiple_members = false;
@@ -158,12 +157,12 @@ public class FinanceManager extends W1nc3ntManager {
    }
 
 
-    private SendMessage summary(long chat_id){
+    private SendMessage summary(Long chat_id){
         String response = this.text_summary;
         for(String member : this.whom){
             response += this.short_format_simple_date(false,
                     this.date,
-                    this.who,
+                    this.session.hget(chat_id.toString(), "who"),
                     member,
                     this.how_much,
                     this.for_what);
@@ -192,20 +191,21 @@ public class FinanceManager extends W1nc3ntManager {
        }
     }
 
-    private boolean db_save(){
-       try {
+    private boolean db_save(Long chat_id){
+        String who = this.session.hget(chat_id.toString(), "who");
+        try {
            Float sum_part = this.how_much / this.whom.size();
            for(String member : whom){
                this.transaction = new Transaction();
                this.transaction.setWhen(this.date);
-               this.transaction.setWho(this.who);
+               this.transaction.setWho(who);
                this.transaction.setWhom(member);
                this.transaction.setHow_much(sum_part);
                this.transaction.setFor_what(this.for_what);
                this.transactionsRepository.save(this.transaction);
 
-               float balance = this.membersRepository.findBalanceByName(this.who) - this.how_much;
-               this.membersRepository.updateBalance(this.who, balance);
+               float balance = this.membersRepository.findBalanceByName(who) - this.how_much;
+               this.membersRepository.updateBalance(who, balance);
 
                balance = this.membersRepository.findBalanceByName(member) + this.how_much;
                this.membersRepository.updateBalance(member, balance);
@@ -220,12 +220,11 @@ public class FinanceManager extends W1nc3ntManager {
    private boolean db_restore_prev_balance(){
        try {
            this.transaction = this.transactionsRepository.findTopByOrderByIdDesc();
-           this.who = this.transaction.getWho();
            this.whom.add(this.transaction.getWhom());
            float how_much = this.transaction.getHow_much();
-           float who_balance = this.membersRepository.findBalanceByName(this.who);
+           float who_balance = this.membersRepository.findBalanceByName(this.transaction.getWho());
            float whom_balance = this.membersRepository.findBalanceByName(this.whom.get(0));
-           this.membersRepository.updateBalance(this.who, who_balance + how_much);
+           this.membersRepository.updateBalance(this.transaction.getWho(), who_balance + how_much);
            this.membersRepository.updateBalance(this.whom.get(0), whom_balance - how_much);
            this.transactionsRepository.deleteById(this.transaction.getId());
            return true;
@@ -242,6 +241,7 @@ public class FinanceManager extends W1nc3ntManager {
         Message message = null;
         String text = null;
         Long chat_id = null;
+
         if(update.hasMessage()){
             message = update.getMessage();
             text = message.getText();
@@ -280,12 +280,12 @@ public class FinanceManager extends W1nc3ntManager {
 
             }
 
-            if(this.who == null){
+            if(this.session.hget(chat_id.toString(), "who") == ""){
 
                 if(update.hasMessage()){
                     if(Arrays.stream(this.members).toList().contains(text)){
-                        this.who = text;
-                        this.excluded_members.add(who);
+                        this.session.hset(chat_id.toString(), "who", text);
+                        this.excluded_members.add(text);
                         return this.respond(chat_id, this.text_whom, create_who_markup(false,
                                 true,
                                 false,
@@ -362,7 +362,7 @@ public class FinanceManager extends W1nc3ntManager {
                 if(update.hasMessage()){
                     this.for_what = text.substring(0,1).toUpperCase() + text.substring(1);
                     this.is_engaged = false;
-                    if(this.db_save()){
+                    if(this.db_save(chat_id)){
                         return this.summary(chat_id);
                     }else{
                         return this.respond(chat_id, this.text_error_db, null);
@@ -374,13 +374,14 @@ public class FinanceManager extends W1nc3ntManager {
 
         if(this.get_state(chat_id).equals("history")){
             this.is_engaged = false;
-            this.who = update.getMessage().getText();
+            this.session.hset(chat_id.toString(), "who", update.getMessage().getText());
             String responce = "";
             Iterable<Transaction> transactions;
-            if(this.who.equalsIgnoreCase("Alle")){
+            String who = this.session.hget(chat_id.toString(), "who");
+            if(who.equalsIgnoreCase("Alle")){
                 transactions = this.transactionsRepository.findAllOrderByWhenAsc();
-            }else if(Arrays.stream(this.members).toList().contains(this.who)){
-                transactions = this.transactionsRepository.findHistory(this.who);
+            }else if(Arrays.stream(this.members).toList().contains(who)){
+                transactions = this.transactionsRepository.findHistory(who);
             }else{
                 return respond(chat_id, this.text_false_input, null);
             }
@@ -429,7 +430,7 @@ public class FinanceManager extends W1nc3ntManager {
         this.transaction = new Transaction();
         this.is_engaged = false;
         this.date = null;
-        this.who = null;
+        this.session.hset(chat_id.toString(), "who", "");
         this.whom = null;
         this.how_much = 0;
         this.for_what = null;

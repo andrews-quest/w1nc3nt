@@ -3,6 +3,9 @@ package com.space_asians.w1ncent.managers;
 import com.space_asians.w1ncent.entities.Member;
 import com.space_asians.w1ncent.repositories.MembersRepository;
 import com.space_asians.w1ncent.repositories.TransactionsRepository;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +36,11 @@ public class W1nc3ntManager {
     protected MembersRepository membersRepository;
     @Autowired
     protected TransactionsRepository transactionsRepository;
+
+    // Redis-based session set up
+    protected RedisClient redisClient = RedisClient.create("redis://localhost:6379/0");
+    StatefulRedisConnection<String, String> redisConnection = this.redisClient.connect();
+    RedisCommands<String, String> session = this.redisConnection.sync();
 
     public boolean is_engaged = false;
     protected String state_name = null;

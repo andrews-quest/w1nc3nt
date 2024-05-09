@@ -32,7 +32,7 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
         this.managers.put(this.moonAPIManager.get_name(), this.moonAPIManager);
         this.managers.put(this.accountManager.get_name(), this.accountManager);
 
-        this.notify_master();
+
     }
 
 
@@ -49,9 +49,7 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
     protected boolean is_private = false;
 
-    protected SendMessage notify_master(){
-        return null;
-    }
+    protected String session_id = "";
 
     protected Optional<W1nc3ntManager> get_manager(String manager){
         return Optional.ofNullable(this.managers.get(manager));
