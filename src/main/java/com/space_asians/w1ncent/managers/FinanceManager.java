@@ -34,7 +34,6 @@ public class FinanceManager extends W1nc3ntManager {
     private String for_what;
 
 
-    private boolean custom_date = false;
     private boolean custom_multiple_members = false;
     private ArrayList<String> excluded_members = new ArrayList<>();
 
@@ -113,7 +112,7 @@ public class FinanceManager extends W1nc3ntManager {
                         null);
             }
 
-            this.custom_date = false;
+            this.session.hset(chat_id.toString(), "custom_date", "false");
             return this.respond(chat_id, this.text_who, this.create_who_markup(
                     false,
                     true,
@@ -257,7 +256,7 @@ public class FinanceManager extends W1nc3ntManager {
         if(this.get_state(chat_id).equals("update")){
             if(date == null){
 
-                if(this.custom_date){
+                if(this.session.hget(chat_id.toString(), "custom_date") == "false"){
                     return this.custom_date(text, chat_id);
                 }
 
@@ -269,7 +268,7 @@ public class FinanceManager extends W1nc3ntManager {
                                 false,
                                 null));
                     }else if(text.equalsIgnoreCase("Nein")){
-                        this.custom_date = true;
+                        this.session.hset(chat_id.toString(), "custom_date", "true");
                         return this.respond(chat_id, this.text_ask_date, null);
                     }else{
                         return this.respond(chat_id, this.text_false_input,null);
@@ -434,7 +433,7 @@ public class FinanceManager extends W1nc3ntManager {
         this.whom = null;
         this.how_much = 0;
         this.for_what = null;
-        this.custom_date = false;
+        this.session.hset(chat_id.toString(), "custom_date", "false");
         this.custom_multiple_members = false;
         this.excluded_members = new ArrayList<>();
     }
