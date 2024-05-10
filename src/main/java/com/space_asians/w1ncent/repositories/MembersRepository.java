@@ -25,6 +25,9 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
 
     public Member findByPassword(String password);
 
+        @Query(value = "SELECT chat_id FROM members WHERE  chat_id IS NOT null", nativeQuery = true)
+    public Long[] getChatIds();
+
     @Modifying
     @Query(value = "UPDATE Member m set m.balance=?2 WHERE m.name=?1")
     public void updateBalance(String name, float balance);

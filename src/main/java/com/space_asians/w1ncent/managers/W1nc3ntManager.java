@@ -28,6 +28,10 @@ public class W1nc3ntManager {
         this.membersRepository.dropState();
         this.membersRepository.dropStateManager();
         this.session = this.sessionRepository.create_connection();
+
+        for(Long chat_id : this.membersRepository.getChatIds()){
+            this.sessionRepository.create_session(chat_id);
+        }
     }
 
     @Autowired

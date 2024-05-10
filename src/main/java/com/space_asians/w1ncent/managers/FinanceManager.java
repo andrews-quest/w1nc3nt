@@ -379,7 +379,7 @@ public class FinanceManager extends W1nc3ntManager {
 
 
         if (this.get_state(chat_id).equals("update")) {
-            String state = this.states[Integer.parseInt(this.session.hget(chat_id.toString(), "state_finances_update"))];
+            String state = this.states[Integer.parseInt(this.session.get(chat_id + ":state_finances_update"))];
 
             if (state.equalsIgnoreCase("date")) {
                 return this.ask_date(update);
