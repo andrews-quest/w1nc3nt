@@ -16,11 +16,11 @@ public class W1nc3ntGroupBot extends W1nc3ntBot {
     private String token;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         String token;
-        if(this.env.equalsIgnoreCase("DEV")){
-            token =  this.test_token;
-        }else{
+        if (this.env.equalsIgnoreCase("DEV")) {
+            token = this.test_token;
+        } else {
             token = this.token;
         }
         this.telegramClient = new OkHttpTelegramClient(token);

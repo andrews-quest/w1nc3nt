@@ -28,47 +28,47 @@ public class MainManager extends W1nc3ntManager {
     @Value("${text.account.not_authenticated}")
     private String text_not_authenticated;
 
-    public MainManager(){
+    public MainManager() {
         super.state_name = "none";
     }
 
 
-    public String current_state(Long chat_id){
+    public String current_state(Long chat_id) {
         Member member = this.membersRepository.findByChatId(chat_id).orElse(null);
         return member != null ? member.getState() : null;
     }
 
-    public void set_state(String state, Long chat_id){
+    public void set_state(String state, Long chat_id) {
         this.membersRepository.updateState(state, chat_id);
     }
 
-    public SendMessage start(Update update, boolean is_logged_in){
-        if(is_logged_in){
+    public SendMessage start(Update update, boolean is_logged_in) {
+        if (is_logged_in) {
             return this.respond(update.getMessage().getChatId(), this.text_false_start, null);
-        }else{
+        } else {
             return this.respond(update.getMessage().getChatId(), this.text_start, null);
         }
     }
 
-    public SendMessage greet(Update update){
+    public SendMessage greet(Update update) {
         return this.respond(update.getMessage().getChatId(), this.text_greeting, null);
     }
 
-    public SendMessage about(Update update){
+    public SendMessage about(Update update) {
         return this.respond(update.getMessage().getChatId(),
-                String.format(this.text_about, this.text_version),null);
+                String.format(this.text_about, this.text_version), null);
     }
 
-    public SendMessage error(Update update){
+    public SendMessage error(Update update) {
         return this.respond(update.getMessage().getChatId(), this.text_error, null);
     }
 
 
-    public SendMessage unknown(Update update){
+    public SendMessage unknown(Update update) {
         return this.respond(update.getMessage().getChatId(), this.text_unknown_command, null);
     }
 
-    public SendMessage not_authenticated(Update update){
+    public SendMessage not_authenticated(Update update) {
         return this.respond(update.getMessage().getChatId(), this.text_not_authenticated, null);
     }
 }

@@ -4,11 +4,9 @@ import com.space_asians.w1ncent.entities.Member;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Transactional
@@ -20,7 +18,6 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
 
     @Query(value = "SELECT balance FROM members WHERE `name` = ?1", nativeQuery = true)
     public float findBalanceByName(String name);
-
 
 
     @Query(value = "SELECT * FROM members WHERE chat_id = ?1", nativeQuery = true)
@@ -50,10 +47,10 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     public void updateStateManager(String state_manager, Long chat_id);
 
     @Modifying
-    @Query(value= "UPDATE members SET state=\"none\"", nativeQuery = true)
+    @Query(value = "UPDATE members SET state=\"none\"", nativeQuery = true)
     public void dropState();
 
     @Modifying
-    @Query(value= "UPDATE members SET state_manager=\"none\"", nativeQuery = true)
+    @Query(value = "UPDATE members SET state_manager=\"none\"", nativeQuery = true)
     public void dropStateManager();
 }

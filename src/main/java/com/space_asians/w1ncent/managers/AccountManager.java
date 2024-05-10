@@ -1,21 +1,13 @@
 package com.space_asians.w1ncent.managers;
 
 import com.space_asians.w1ncent.entities.Member;
-import com.space_asians.w1ncent.repositories.MembersRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
-public class AccountManager extends W1nc3ntManager{
+public class AccountManager extends W1nc3ntManager {
 
     @Value("${text.account.authentication.success}")
     private String text_auth_success;
@@ -30,36 +22,36 @@ public class AccountManager extends W1nc3ntManager{
     @Value("${text.account.log_out_cancel}")
     private String text_log_out_cancel;
 
-    public AccountManager(){
+    public AccountManager() {
         super.state_name = "account";
     }
 
 
-
-    public boolean is_logged_in(Update update){
+    public boolean is_logged_in(Update update) {
         Long chat_id = update.getMessage().getChatId();
         Member member = this.membersRepository.findByChatId(chat_id).orElse(null);
         return member == null ? false : true;
     }
 
-    public SendMessage authenticate(Update update){
+    public SendMessage authenticate(Update update) {
         String text = update.getMessage().getText();
         Long chat_id = update.getMessage().getChatId();
-        if(this.membersRepository.findByPassword(text) != null){
+        if (this.membersRepository.findByPassword(text) != null) {
             this.membersRepository.updateChatId(chat_id, text);
+            this.sessionRepository.create_session(chat_id);
             return this.respond(chat_id, this.text_auth_success, null);
-        }else{
+        } else {
             return this.respond(chat_id, this.text_auth_failure, null);
         }
     }
 
-    public SendMessage consume(Update update){
+    public SendMessage consume(Update update) {
         Long chat_id = update.getMessage().getChatId();
-        if(update.getMessage().getText().equalsIgnoreCase("Ja")){
+        if (update.getMessage().getText().equalsIgnoreCase("Ja")) {
             this.log_out(update);
             this.end(chat_id);
             return respond(chat_id, this.text_log_out, null);
-        }else if(update.getMessage().getText().equalsIgnoreCase("Nein")){
+        } else if (update.getMessage().getText().equalsIgnoreCase("Nein")) {
             this.end(chat_id);
             return respond(chat_id, this.text_log_out_cancel, null);
         }
@@ -71,13 +63,13 @@ public class AccountManager extends W1nc3ntManager{
                 this.create_yes_no_markup(false));
     }
 
-    public String get_account_info(Long chat_id){
+    public String get_account_info(Long chat_id) {
         Member member = this.membersRepository.findByChatId(chat_id).orElse(null);
         String name = member.getName();
         return String.format(this.text_info, name);
     }
 
-    public SendMessage log_out(Update update){
+    public SendMessage log_out(Update update) {
         Long chat_id = update.getMessage().getChatId();
         this.membersRepository.dropChatId(chat_id);
         return this.respond(chat_id, this.text_log_out, null);

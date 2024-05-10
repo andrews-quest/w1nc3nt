@@ -8,13 +8,13 @@ public class MultithreadedTelegramApplication extends Thread {
     private String token;
     private W1nc3ntBot bot;
 
-    public MultithreadedTelegramApplication(String token, W1nc3ntBot bot){
+    public MultithreadedTelegramApplication(String token, W1nc3ntBot bot) {
         this.token = token;
         this.bot = bot;
     }
 
     @Override
-    public void run(){
+    public void run() {
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
             botsApplication.registerBot(this.token, this.bot);
             System.out.println("Success");
