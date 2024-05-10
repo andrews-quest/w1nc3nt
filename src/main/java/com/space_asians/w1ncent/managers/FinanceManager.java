@@ -233,6 +233,104 @@ public class FinanceManager extends W1nc3ntManager {
        }
    }
 
+   private SendMessage ask_date(Update update, Long chat_id, String text){
+       if(this.session.hget(chat_id.toString(), "custom_date") == "false"){
+           return this.custom_date(text, chat_id);
+       }
+
+       if(update.hasMessage() && !Objects.equals(text, "/finances_update")){
+           if(text.equalsIgnoreCase("Ja")){
+               this.date = LocalDate.now();
+               return this.respond(chat_id, this.text_who, this.create_who_markup(false,
+                       false,
+                       false,
+                       null));
+           }else if(text.equalsIgnoreCase("Nein")){
+               this.session.hset(chat_id.toString(), "custom_date", "true");
+               return this.respond(chat_id, this.text_ask_date, null);
+           }else{
+               return this.respond(chat_id, this.text_false_input,null);
+           }
+       }
+
+       return this.respond(chat_id, this.text_date, this.create_yes_no_markup(true));
+   }
+
+   private SendMessage ask_who(Long chat_id, String text){
+
+           if(Arrays.stream(this.members).toList().contains(text)){
+               this.session.hset(chat_id.toString(), "who", text);
+               this.excluded_members.add(text);
+               return this.respond(chat_id, this.text_whom, create_who_markup(false,
+                       true,
+                       false,
+                       this.excluded_members));
+           }else{
+               return this.respond(chat_id, this.text_unknown_member, null);
+           }
+   }
+
+   private SendMessage ask_whom(Long chat_id, String text){
+
+
+       if(this.custom_multiple_members){
+           if(text.equalsIgnoreCase("Weiter >")){
+               this.whom = this.excluded_members;
+               this.custom_multiple_members = false;
+               return this.respond(chat_id,
+                       this.text_how_much,
+                       this.create_end_markup());
+           }else if(Arrays.stream(this.members).toList().contains(text)){
+               this.excluded_members.add(text);
+               return this.respond(chat_id,
+                       this.text_next_member,
+                       this.create_who_markup(false, false, true, this.excluded_members));
+           }else{
+               return this.respond(chat_id,
+                       this.text_false_input,
+                       this.create_who_markup(true,
+                               false,
+                               true,
+                               this.excluded_members));
+           }
+       }
+
+       if(Arrays.stream(this.members).toList().contains(text)){
+           this.whom.add(text);
+           return this.respond(chat_id, this.text_how_much, this.create_end_markup());
+       }else if(text.equalsIgnoreCase("Mehrere")){
+           this.custom_multiple_members = true;
+           return this.respond(chat_id,
+                   this.text_multiple_members,
+                   this.create_who_markup(false, false, true, this.excluded_members));
+       }else{
+           return this.respond(chat_id, this.text_unknown_member, null);
+       }
+   }
+
+   private SendMessage ask_how_much(Long chat_id, String text){
+       try{
+           this.how_much = Float.parseFloat(text);
+       }catch (NumberFormatException e){
+           return this.respond(chat_id, this.text_error_sum_format, null);
+       }
+       if(this.how_much < 0){
+           this.how_much = 0;
+           return this.respond(chat_id, this.text_error_sum_negative, null);
+       }
+       return this.respond(chat_id, this.text_for_what, this.create_end_markup());
+   }
+
+   private SendMessage ask_for_what(Long chat_id, String text){
+       this.for_what = text.substring(0,1).toUpperCase() + text.substring(1);
+       this.is_engaged = false;
+       if(this.db_save(chat_id)){
+           return this.summary(chat_id);
+       }else{
+           return this.respond(chat_id, this.text_error_db, null);
+       }
+   }
+
     // Main Function
 
     @Override
@@ -255,119 +353,23 @@ public class FinanceManager extends W1nc3ntManager {
 
         if(this.get_state(chat_id).equals("update")){
             if(date == null){
-
-                if(this.session.hget(chat_id.toString(), "custom_date") == "false"){
-                    return this.custom_date(text, chat_id);
-                }
-
-                if(update.hasMessage() && !Objects.equals(text, "/finances_update")){
-                    if(text.equalsIgnoreCase("Ja")){
-                        this.date = LocalDate.now();
-                        return this.respond(chat_id, this.text_who, this.create_who_markup(false,
-                                false,
-                                false,
-                                null));
-                    }else if(text.equalsIgnoreCase("Nein")){
-                        this.session.hset(chat_id.toString(), "custom_date", "true");
-                        return this.respond(chat_id, this.text_ask_date, null);
-                    }else{
-                        return this.respond(chat_id, this.text_false_input,null);
-                    }
-                }
-
-                return this.respond(chat_id, this.text_date, this.create_yes_no_markup(true));
-
+                return this.ask_date(update, chat_id, text);
             }
 
             if(this.session.hget(chat_id.toString(), "who") == ""){
-
-                if(update.hasMessage()){
-                    if(Arrays.stream(this.members).toList().contains(text)){
-                        this.session.hset(chat_id.toString(), "who", text);
-                        this.excluded_members.add(text);
-                        return this.respond(chat_id, this.text_whom, create_who_markup(false,
-                                true,
-                                false,
-                                this.excluded_members));
-                    }else{
-                        return this.respond(chat_id, this.text_unknown_member, null);
-                    }
-                }
-                return this.respond(chat_id, this.text_who, this.create_who_markup(false,
-                        true,
-                        false,
-                        null));
+                return this.ask_who(chat_id, text);
             }
 
             if(this.whom == null){
-
-                if(update.hasMessage()){
-                    if(this.custom_multiple_members){
-                        if(text.equalsIgnoreCase("Weiter >")){
-                            this.whom = this.excluded_members;
-                            this.custom_multiple_members = false;
-                            return this.respond(chat_id,
-                                    this.text_how_much,
-                                    this.create_end_markup());
-                        }else if(Arrays.stream(this.members).toList().contains(text)){
-                            this.excluded_members.add(text);
-                            return this.respond(chat_id,
-                                    this.text_next_member,
-                                    this.create_who_markup(false, false, true, this.excluded_members));
-                        }else{
-                            return this.respond(chat_id,
-                                    this.text_false_input,
-                                    this.create_who_markup(true,
-                                            false,
-                                            true,
-                                            this.excluded_members));
-                        }
-                    }
-
-                    if(Arrays.stream(this.members).toList().contains(text)){
-                        this.whom.add(text);
-                        return this.respond(chat_id, this.text_how_much, this.create_end_markup());
-                    }else if(text.equalsIgnoreCase("Mehrere")){
-                        this.custom_multiple_members = true;
-                        return this.respond(chat_id,
-                                this.text_multiple_members,
-                                this.create_who_markup(false, false, true, this.excluded_members));
-                    }else{
-                        return this.respond(chat_id, this.text_unknown_member, null);
-                    }
-                }
-                return this.respond(chat_id, this.text_whom, null);
+                return this.ask_whom(chat_id, text);
             }
 
             if(this.how_much == 0){
-
-                if(update.hasMessage()){
-                    try{
-                        this.how_much = Float.parseFloat(text);
-                    }catch (NumberFormatException e){
-                        return this.respond(chat_id, this.text_error_sum_format, null);
-                    }
-                    if(this.how_much < 0){
-                        this.how_much = 0;
-                        return this.respond(chat_id, this.text_error_sum_negative, null);
-                    }
-                    return this.respond(chat_id, this.text_for_what, this.create_end_markup());
-                }
-                return this.respond(chat_id, this.text_how_much, this.create_end_markup());
+                return this.ask_how_much(chat_id, text);
             }
 
             if(this.for_what == null){
-
-                if(update.hasMessage()){
-                    this.for_what = text.substring(0,1).toUpperCase() + text.substring(1);
-                    this.is_engaged = false;
-                    if(this.db_save(chat_id)){
-                        return this.summary(chat_id);
-                    }else{
-                        return this.respond(chat_id, this.text_error_db, null);
-                    }
-                }
-                return this.respond(chat_id, this.text_for_what, this.create_end_markup());
+                return this.ask_for_what(chat_id, text);
             }
         }
 
@@ -435,7 +437,6 @@ public class FinanceManager extends W1nc3ntManager {
         this.for_what = null;
         this.session.hset(chat_id.toString(), "custom_date", "false");
         this.custom_multiple_members = false;
-        this.excluded_members = new ArrayList<>();
     }
 
     public SendMessage update(Update update){
