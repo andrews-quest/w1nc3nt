@@ -32,7 +32,7 @@ public class FinanceManager extends W1nc3ntManager {
     private ArrayList<String> whom = new ArrayList<>();
     private float how_much;
     private String for_what;
-
+    private String[] states = {"date", "payer", "receivers", "sum", "ocasion"};
 
     private boolean custom_multiple_members = false;
     private ArrayList<String> excluded_members = new ArrayList<>();
@@ -241,6 +241,7 @@ public class FinanceManager extends W1nc3ntManager {
        if(update.hasMessage() && !Objects.equals(text, "/finances_update")){
            if(text.equalsIgnoreCase("Ja")){
                this.date = LocalDate.now();
+               this.session.hincrby(chat_id.toString(), "state_finances_update", 1);
                return this.respond(chat_id, this.text_who, this.create_who_markup(false,
                        false,
                        false,
@@ -352,7 +353,9 @@ public class FinanceManager extends W1nc3ntManager {
 
 
         if(this.get_state(chat_id).equals("update")){
-            if(date == null){
+            String state = this.states[Integer.parseInt(this.session.hget(chat_id.toString(), "state_finances_update"))];
+
+            if(state.equalsIgnoreCase("date")){
                 return this.ask_date(update, chat_id, text);
             }
 
@@ -392,8 +395,6 @@ public class FinanceManager extends W1nc3ntManager {
                 if(!transaction.getWhen().equals(previous_date)){
                     responce+="\n";
                 }
-                ArrayList<String> temp_whom = new ArrayList<>();
-                temp_whom.add(transaction.getWhom());
                 responce += short_format_simple_date(true,
                         transaction.getWhen(),
                         transaction.getWho(),
@@ -427,15 +428,17 @@ public class FinanceManager extends W1nc3ntManager {
 
     @Override
     public void end(Long chat_id){
+        String id = chat_id.toString();
         super.end(chat_id);
         this.transaction = new Transaction();
         this.is_engaged = false;
+        this.session.hset(id, "state_finances_update", "0");
         this.date = null;
-        this.session.hset(chat_id.toString(), "who", "");
+        this.session.hset(id, "who", "");
         this.whom = null;
         this.how_much = 0;
         this.for_what = null;
-        this.session.hset(chat_id.toString(), "custom_date", "false");
+        this.session.hset(id, "custom_date", "false");
         this.custom_multiple_members = false;
     }
 
