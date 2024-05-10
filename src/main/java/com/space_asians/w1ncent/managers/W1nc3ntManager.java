@@ -29,7 +29,8 @@ public class W1nc3ntManager {
         this.membersRepository.dropStateManager();
         this.session = this.sessionRepository.create_connection();
 
-        for(Long chat_id : this.membersRepository.getChatIds()){
+        Long[] chat_ids = this.membersRepository.getChatIds();
+        for(Long chat_id : chat_ids){
             this.sessionRepository.create_session(chat_id);
         }
     }

@@ -23,7 +23,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 @Component
 public class FinanceManager extends W1nc3ntManager {
 
-    private final String[] states = {"date", "payer", "receivers", "sum", "ocasion"};
+    private final String[] states = {"date", "payer", "receivers", "sum", "occasion", "summary"};
     private final ArrayList<String> excluded_members = new ArrayList<>();
     @Value("${main.members}")
     private String[] members;
@@ -166,18 +166,6 @@ public class FinanceManager extends W1nc3ntManager {
     }
 
 
-    private SendMessage summary(Long chat_id) {
-        String response = this.text_summary;
-        for (String member : this.whom) {
-            response += this.short_format_simple_date(false,
-                    this.date,
-                    this.session.hget(chat_id.toString(), "who"),
-                    member,
-                    this.how_much,
-                    this.for_what);
-        }
-        return respond(chat_id, response, null);
-    }
 
     private String short_format(boolean date_first, String date, String who, String whom, Float how_much, String for_what) {
         who = who.substring(0, 1);
@@ -201,7 +189,7 @@ public class FinanceManager extends W1nc3ntManager {
     }
 
     private boolean db_save(Long chat_id) {
-        String who = this.session.hget(chat_id.toString(), "who");
+        String who = this.session.get(chat_id + ":payer");
         try {
             Float sum_part = this.how_much / this.whom.size();
             for (String member : whom) {
@@ -258,11 +246,11 @@ public class FinanceManager extends W1nc3ntManager {
 
         if (text.equalsIgnoreCase("Ja")) {
             this.date = LocalDate.now();
-            this.session.hincrby(chat_id.toString(), "state_finances_update", 1);
+            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
             this.session.set(chat_id + ":awaiting_response", "false");
             return this.consume(update);
         } else if (text.equalsIgnoreCase("Nein")) {
-            this.session.hset(chat_id.toString(), "custom_date", "true");
+            this.session.set(chat_id + ":custom_date", "true");
             return this.respond(chat_id, this.text_ask_date, null);
         }
 
@@ -283,8 +271,9 @@ public class FinanceManager extends W1nc3ntManager {
         }
 
         if (Arrays.stream(this.members).toList().contains(text)) {
-            this.session.hset(chat_id.toString(), "who", text);
+            this.session.set(chat_id + ":payer", text);
             this.excluded_members.add(text);
+            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
             this.session.set(chat_id + ":awaiting_response", "false");
             return this.consume(update);
         }
@@ -292,8 +281,11 @@ public class FinanceManager extends W1nc3ntManager {
         return this.respond(chat_id, this.text_unknown_member, null);
     }
 
-    private SendMessage ask_whom(Long chat_id, String text) {
+    private SendMessage ask_whom(Update update) {
+        Long chat_id = update.getMessage().getChatId();
+        String text = update.getMessage().getText();
         if (this.session.get(chat_id + ":awaiting_response").equals("false")){
+            this.session.set(chat_id + ":awaiting_response", "true");
             return this.respond(chat_id, this.text_whom, create_who_markup(false,
                     true,
                     false,
@@ -304,6 +296,7 @@ public class FinanceManager extends W1nc3ntManager {
             if (text.equalsIgnoreCase("Weiter >")) {
                 this.whom = this.excluded_members;
                 this.custom_multiple_members = false;
+                this.session.set(chat_id + ":awaiting_response", "false");
                 return this.respond(chat_id,
                         this.text_how_much,
                         this.create_end_markup());
@@ -323,8 +316,10 @@ public class FinanceManager extends W1nc3ntManager {
         }
 
         if (Arrays.stream(this.members).toList().contains(text)) {
+            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+            this.session.set(chat_id + ":awaiting_response", "false");
             this.whom.add(text);
-            return this.respond(chat_id, this.text_how_much, this.create_end_markup());
+            return this.consume(update);
         } else if (text.equalsIgnoreCase("Mehrere")) {
             this.custom_multiple_members = true;
             return this.respond(chat_id,
@@ -335,27 +330,62 @@ public class FinanceManager extends W1nc3ntManager {
         }
     }
 
-    private SendMessage ask_how_much(Long chat_id, String text) {
+    private SendMessage ask_how_much(Update update) {
+        Long chat_id = update.getMessage().getChatId();
+        String text = update.getMessage().getText();
+
+        if(this.session.get(chat_id + ":awaiting_response").equals("false")){
+            this.session.set(chat_id + ":awaiting_response", "true");
+            return this.respond(chat_id, this.text_how_much, this.create_end_markup());
+        }
+
         try {
             this.how_much = Float.parseFloat(text);
         } catch (NumberFormatException e) {
             return this.respond(chat_id, this.text_error_sum_format, null);
         }
+
         if (this.how_much < 0) {
             this.how_much = 0;
             return this.respond(chat_id, this.text_error_sum_negative, null);
         }
-        return this.respond(chat_id, this.text_for_what, this.create_end_markup());
+
+        this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+        this.session.set(chat_id + ":awaiting_response", "false");
+        return this.consume(update);
     }
 
-    private SendMessage ask_for_what(Long chat_id, String text) {
+    private SendMessage ask_for_what(Update update) {
+        Long chat_id = update.getMessage().getChatId();
+        String text = update.getMessage().getText();
+
+        if(this.session.get(chat_id + ":awaiting_response").equals("false")){
+            this.session.set(chat_id + ":awaiting_response", "true");
+            return this.respond(chat_id, this.text_for_what, this.create_end_markup());
+        }
+
         this.for_what = text.substring(0, 1).toUpperCase() + text.substring(1);
         this.is_engaged = false;
         if (this.db_save(chat_id)) {
-            return this.summary(chat_id);
+            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+            this.session.set(chat_id + ":awaiting_response", "false");
+            return this.consume(update);
         } else {
             return this.respond(chat_id, this.text_error_db, null);
         }
+    }
+
+    private SendMessage summary(Long chat_id) {
+        String response = this.text_summary;
+        for (String member : this.whom) {
+            response += this.short_format_simple_date(false,
+                    this.date,
+                    this.session.get(chat_id.toString() + ":payer"),
+                    member,
+                    this.how_much,
+                    this.for_what);
+        }
+        return respond(chat_id, response, null);
     }
 
     // Main Function
@@ -390,15 +420,19 @@ public class FinanceManager extends W1nc3ntManager {
             }
 
             if (state.equalsIgnoreCase("receivers")) {
-                return this.ask_whom(chat_id, text);
+                return this.ask_whom(update);
             }
 
             if (state.equalsIgnoreCase("sum")) {
-                return this.ask_how_much(chat_id, text);
+                return this.ask_how_much(update);
             }
 
             if (state.equalsIgnoreCase("occasion")) {
-                return this.ask_for_what(chat_id, text);
+                return this.ask_for_what(update);
+            }
+
+            if (state.equalsIgnoreCase("summary")){
+                return this.summary(update.getMessage().getChatId());
             }
         }
 
