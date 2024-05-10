@@ -29,6 +29,7 @@ public class SessionRepository {
         this.session.set(id + ":payer", "");
         this.session.set(id + ":receivers", "");
         this.session.del(id + ":selected_members");
+        this.session.set(id + ":multiple_members", "false");
         this.session.set(id + ":sum", "");
         this.session.set(id + ":occasion", "");
     }

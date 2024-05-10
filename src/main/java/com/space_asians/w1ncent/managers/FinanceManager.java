@@ -35,7 +35,6 @@ public class FinanceManager extends W1nc3ntManager {
     private ArrayList<String> whom = new ArrayList<>();
     private float how_much;
     private String for_what;
-    private boolean custom_multiple_members = false;
     // SendMessage texts
     @Value("${text.finance.date}")
     private String text_date;
@@ -297,16 +296,17 @@ public class FinanceManager extends W1nc3ntManager {
                     selected_members));
         }
 
-        if (this.custom_multiple_members) {
+        if (this.session.get(chat_id + ":multiple_members").equals("true")) {
             if (text.equalsIgnoreCase("Weiter >")) {
                 this.whom = selected_members;
-                this.custom_multiple_members = false;
+                this.session.set(chat_id + ":multiple_members", "false");
                 this.session.set(chat_id + ":awaiting_response", "false");
                 return this.respond(chat_id,
                         this.text_how_much,
                         this.create_end_markup());
             } else if (Arrays.stream(this.members).toList().contains(text)) {
                 this.session.lpush(chat_id + ":selected_members", text);
+                selected_members.add(text);
                 return this.respond(chat_id,
                         this.text_next_member,
                         this.create_who_markup(false, false, true, selected_members));
@@ -326,7 +326,7 @@ public class FinanceManager extends W1nc3ntManager {
             this.whom.add(text);
             return this.consume(update);
         } else if (text.equalsIgnoreCase("Mehrere")) {
-            this.custom_multiple_members = true;
+            this.session.set(chat_id + ":multiple_members", "true");
             return this.respond(chat_id,
                     this.text_multiple_members,
                     this.create_who_markup(false, false, true, selected_members));
@@ -388,7 +388,7 @@ public class FinanceManager extends W1nc3ntManager {
                     this.session.get(chat_id.toString() + ":payer"),
                     member,
                     this.how_much,
-                    this.for_what);
+                    this.for_what) + "\n";
         }
         return respond(chat_id, response, null);
     }
@@ -493,18 +493,14 @@ public class FinanceManager extends W1nc3ntManager {
 
     @Override
     public void end(Long chat_id) {
-        String id = chat_id.toString();
         super.end(chat_id);
         this.transaction = new Transaction();
         this.is_engaged = false;
-        this.session.hset(id, "state_finances_update", "0");
+        this.sessionRepository.create_session(chat_id);
         this.date = null;
-        this.session.hset(id, "who", "");
         this.whom = null;
         this.how_much = 0;
         this.for_what = null;
-        this.session.hset(id, "custom_date", "false");
-        this.custom_multiple_members = false;
     }
 
     public SendMessage update(Update update) {
