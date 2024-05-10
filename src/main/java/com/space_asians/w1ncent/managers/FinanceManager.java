@@ -24,7 +24,6 @@ import static java.time.temporal.ChronoUnit.DAYS;
 public class FinanceManager extends W1nc3ntManager {
 
     private final String[] states = {"date", "payer", "receivers", "sum", "occasion", "summary"};
-    private final ArrayList<String> excluded_members = new ArrayList<>();
     @Value("${main.members}")
     private String[] members;
     private Transaction transaction = new Transaction();
@@ -130,7 +129,9 @@ public class FinanceManager extends W1nc3ntManager {
         List<KeyboardRow> keyboard = new ArrayList<KeyboardRow>();
         KeyboardRow row = new KeyboardRow();
         for (String member : Arrays.copyOfRange(this.members, 0, 2)) {
-            if (!this.excluded_members.contains(member)) {
+            if(excluded_members != null){
+                if (!excluded_members.contains(member)) {row.add(member);}
+            }else {
                 row.add(member);
             }
         }
@@ -138,7 +139,9 @@ public class FinanceManager extends W1nc3ntManager {
 
         row = new KeyboardRow();
         for (String member : Arrays.copyOfRange(this.members, 2, this.members.length)) {
-            if (!this.excluded_members.contains(member)) {
+            if(excluded_members != null){
+                if (!excluded_members.contains(member)) {row.add(member);}
+            }else {
                 row.add(member);
             }
         }
@@ -272,7 +275,7 @@ public class FinanceManager extends W1nc3ntManager {
 
         if (Arrays.stream(this.members).toList().contains(text)) {
             this.session.set(chat_id + ":payer", text);
-            this.excluded_members.add(text);
+            this.session.lpush(chat_id + ":selected_members", text);
             this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
             this.session.set(chat_id + ":awaiting_response", "false");
             return this.consume(update);
@@ -284,34 +287,36 @@ public class FinanceManager extends W1nc3ntManager {
     private SendMessage ask_whom(Update update) {
         Long chat_id = update.getMessage().getChatId();
         String text = update.getMessage().getText();
+        ArrayList<String> selected_members = (ArrayList<String>) this.session.lrange(chat_id + ":selected_members", 0, -1);
+
         if (this.session.get(chat_id + ":awaiting_response").equals("false")){
             this.session.set(chat_id + ":awaiting_response", "true");
             return this.respond(chat_id, this.text_whom, create_who_markup(false,
                     true,
                     false,
-                    this.excluded_members));
+                    selected_members));
         }
 
         if (this.custom_multiple_members) {
             if (text.equalsIgnoreCase("Weiter >")) {
-                this.whom = this.excluded_members;
+                this.whom = selected_members;
                 this.custom_multiple_members = false;
                 this.session.set(chat_id + ":awaiting_response", "false");
                 return this.respond(chat_id,
                         this.text_how_much,
                         this.create_end_markup());
             } else if (Arrays.stream(this.members).toList().contains(text)) {
-                this.excluded_members.add(text);
+                this.session.lpush(chat_id + ":selected_members", text);
                 return this.respond(chat_id,
                         this.text_next_member,
-                        this.create_who_markup(false, false, true, this.excluded_members));
+                        this.create_who_markup(false, false, true, selected_members));
             } else {
                 return this.respond(chat_id,
                         this.text_false_input,
                         this.create_who_markup(true,
                                 false,
                                 true,
-                                this.excluded_members));
+                                selected_members));
             }
         }
 
@@ -324,7 +329,7 @@ public class FinanceManager extends W1nc3ntManager {
             this.custom_multiple_members = true;
             return this.respond(chat_id,
                     this.text_multiple_members,
-                    this.create_who_markup(false, false, true, this.excluded_members));
+                    this.create_who_markup(false, false, true, selected_members));
         } else {
             return this.respond(chat_id, this.text_unknown_member, null);
         }
