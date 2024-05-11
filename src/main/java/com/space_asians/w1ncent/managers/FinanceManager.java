@@ -234,10 +234,12 @@ public class FinanceManager extends W1nc3ntManager {
 
     private boolean db_save(Long chat_id) {
         String who = this.session.get(chat_id + ":payer");
+        String previous = "";
         try {
             String[] receivers = this.session.lrange(chat_id + ":receivers", 0, -1).toArray(new String[0]);
             Float sum = Float.parseFloat(this.session.get(chat_id + ":sum"));
             Float sum_part = sum / receivers.length;
+            String author = this.membersRepository.findNameByChatId(chat_id);
             for (String member : receivers) {
                 Transaction transaction = new Transaction();
                 transaction.setWhen(LocalDate.parse(this.session.get(chat_id + ":date")));
@@ -245,7 +247,12 @@ public class FinanceManager extends W1nc3ntManager {
                 transaction.setWhom(member);
                 transaction.setHow_much(sum_part);
                 transaction.setFor_what(this.session.get(chat_id + ":occasion"));
+                transaction.setAuthor(author);
                 transactionsRepository.save(transaction);
+
+
+                int id = transaction.getId();
+                previous += String.valueOf(id) + " ";
 
                 float balance = this.membersRepository.findBalanceByName(who) - sum;
                 this.membersRepository.updateBalance(who, balance);
@@ -253,6 +260,7 @@ public class FinanceManager extends W1nc3ntManager {
                 balance = this.membersRepository.findBalanceByName(member) + sum;
                 this.membersRepository.updateBalance(member, balance);
             }
+            this.membersRepository.updatePrevious(chat_id, previous);
             return true;
         } catch (Exception e) {
             System.out.println(e);
@@ -527,19 +535,25 @@ public class FinanceManager extends W1nc3ntManager {
     }
 
     public SendMessage cancel_last(Update update) {
+        Long chat_id = update.getMessage().getChatId();
+        String transactions_preview = "";
         this.is_engaged = true;
-        Transaction prev_transaction = transactionsRepository.findTopByOrderByIdDesc();
-        ArrayList<String> who_temp = new ArrayList<>();
-        who_temp.add(prev_transaction.getWho());
-        String prev_transaction_short = this.short_format_simple_date(false,
-                prev_transaction.getWhen(),
-                prev_transaction.getWhom(),
-                prev_transaction.getWho(),
-                prev_transaction.getHow_much(),
-                prev_transaction.getFor_what());
+        /*
+        String author = this.membersRepository.findChatIdByAuthor();
+        int[] prev_transactions = this.transactionsRepository.findPreviousTransactionsByAuthor(author);
+        for(int id : prev_transactions){
+            Transaction prev_transaction = this.transactionsRepository.findTopByOrderByIdDesc();
+            transactions_preview += this.short_format_simple_date(false,
+                    prev_transaction.getWhen(),
+                    prev_transaction.getWhom(),
+                    prev_transaction.getWho(),
+                    prev_transaction.getHow_much(),
+                    prev_transaction.getFor_what());
+        }*/
+
         this.set_state("cancel", update.getMessage().getChatId());
         return respond(update.getMessage().getChatId(),
-                String.format(this.text_cancel, prev_transaction_short),
+                String.format(this.text_cancel, transactions_preview),
                 this.create_yes_no_markup(false));
     }
 }

@@ -25,7 +25,10 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
 
     public Member findByPassword(String password);
 
-        @Query(value = "SELECT chat_id FROM members WHERE  chat_id IS NOT null", nativeQuery = true)
+    @Query(value = "SELECT name FROM members WHERE chat_id = ?1", nativeQuery = true)
+    public String findNameByChatId(Long chat_id);
+
+    @Query(value = "SELECT chat_id FROM members WHERE  chat_id IS NOT null", nativeQuery = true)
     public Long[] getChatIds();
 
     @Modifying
@@ -36,6 +39,9 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     @Query(value = "UPDATE Member m set m.chat_id = ?1 WHERE m.password = ?2")
     public void updateChatId(Long chat_id, String password);
 
+    @Modifying
+    @Query(value = "UPDATE Member m set m.previous = ?2 WHERE m.chat_id = ?1")
+    public void updatePrevious(Long chat_id, String previous);
 
     @Modifying
     @Query(value = "UPDATE Member m set m.chat_id = 0 WHERE m.chat_id = ?1")

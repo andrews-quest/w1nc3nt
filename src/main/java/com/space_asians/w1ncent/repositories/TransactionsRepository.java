@@ -19,4 +19,9 @@ public interface TransactionsRepository extends CrudRepository<Transaction, Inte
 
     @Query(value = "SELECT * FROM transactions WHERE who= ?1 OR whom=?1 ORDER BY `when` ASC", nativeQuery = true)
     public Iterable<Transaction> findHistory(String member);
+
+    // @Query(value = "SELECT previous_transactions FROM members WHERE chat_id = ?1", nativeQuery = true)
+    // public int[] findPreviousTransactionsByChatId(Long chat_id);
+
+
 }

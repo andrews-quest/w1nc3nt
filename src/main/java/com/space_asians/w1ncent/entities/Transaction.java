@@ -23,6 +23,16 @@ public class Transaction {
     private float how_much;
     @Column
     private String for_what;
+    @Column
+    private String author;
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
 
     public Transaction() {
     }
