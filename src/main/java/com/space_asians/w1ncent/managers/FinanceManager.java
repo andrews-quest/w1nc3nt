@@ -31,7 +31,6 @@ public class FinanceManager extends W1nc3ntManager {
     @Autowired
     private MembersRepository membersRepository;
     private LocalDate date;
-    private float how_much;
     // SendMessage texts
     @Value("${text.finance.date}")
     private String text_date;
@@ -191,7 +190,8 @@ public class FinanceManager extends W1nc3ntManager {
         String who = this.session.get(chat_id + ":payer");
         try {
             String[] receivers = this.session.lrange(chat_id + ":receivers", 0, -1).toArray(new String[0]);
-            Float sum_part = this.how_much / receivers.length;
+            Float sum = Float.parseFloat(this.session.get(chat_id + ":sum"));
+            Float sum_part = sum / receivers.length;
             for (String member : receivers) {
                 Transaction transaction = new Transaction();
                 transaction.setWhen(this.date);
@@ -201,10 +201,10 @@ public class FinanceManager extends W1nc3ntManager {
                 transaction.setFor_what(this.session.get(chat_id + ":occasion"));
                 transactionsRepository.save(transaction);
 
-                float balance = this.membersRepository.findBalanceByName(who) - this.how_much;
+                float balance = this.membersRepository.findBalanceByName(who) - sum;
                 this.membersRepository.updateBalance(who, balance);
 
-                balance = this.membersRepository.findBalanceByName(member) + this.how_much;
+                balance = this.membersRepository.findBalanceByName(member) + sum;
                 this.membersRepository.updateBalance(member, balance);
             }
             return true;
@@ -338,6 +338,7 @@ public class FinanceManager extends W1nc3ntManager {
     private SendMessage ask_how_much(Update update) {
         Long chat_id = update.getMessage().getChatId();
         String text = update.getMessage().getText();
+        Float sum;
 
         if(this.session.get(chat_id + ":awaiting_response").equals("false")){
             this.session.set(chat_id + ":awaiting_response", "true");
@@ -345,16 +346,17 @@ public class FinanceManager extends W1nc3ntManager {
         }
 
         try {
-            this.how_much = Float.parseFloat(text);
+            sum = Float.parseFloat(text);
         } catch (NumberFormatException e) {
             return this.respond(chat_id, this.text_error_sum_format, null);
         }
 
-        if (this.how_much < 0) {
-            this.how_much = 0;
+        if (sum < 0) {
+            sum = (float) 0;
             return this.respond(chat_id, this.text_error_sum_negative, null);
         }
 
+        this.session.set(chat_id + ":sum", text);
         this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
         this.session.set(chat_id + ":awaiting_response", "false");
         return this.consume(update);
@@ -385,9 +387,9 @@ public class FinanceManager extends W1nc3ntManager {
         for (String member : this.session.lrange(chat_id + ":receivers", 0, -1)) {
             response += this.short_format_simple_date(false,
                     this.date,
-                    this.session.get(chat_id.toString() + ":payer"),
+                    this.session.get(chat_id + ":payer"),
                     member,
-                    this.how_much,
+                    Float.parseFloat(this.session.get(chat_id + ":sum")),
                     this.session.get(chat_id + ":occasion")) + "\n";
         }
         return respond(chat_id, response, null);
@@ -497,7 +499,6 @@ public class FinanceManager extends W1nc3ntManager {
         this.is_engaged = false;
         this.sessionRepository.create_session(chat_id);
         this.date = null;
-        this.how_much = 0;
     }
 
     public SendMessage update(Update update) {
