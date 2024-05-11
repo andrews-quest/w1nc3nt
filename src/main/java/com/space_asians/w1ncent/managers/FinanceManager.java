@@ -409,52 +409,94 @@ public class FinanceManager extends W1nc3ntManager {
         return respond(chat_id, response, null);
     }
 
+    // Undo Functions
+
+    private SendMessage undo_who(Update update){
+        Long chat_id = update.getMessage().getChatId();
+        this.session.set(chat_id + ":payer", "");
+        this.session.del(chat_id + ":selected_members");
+        return consume(update);
+    }
+
     // Main Function
 
     @Override
     public SendMessage consume(Update update) {
-        Message message = null;
-        String text = null;
-        Long chat_id = null;
-
-        if (update.hasMessage()) {
-            message = update.getMessage();
-            text = message.getText();
-            chat_id = message.getChatId();
-        }
+        Message message = update.getMessage();
+        String text = message.getText();
+        Long chat_id = message.getChatId();
 
         if (text.equalsIgnoreCase("Beenden") || text.equalsIgnoreCase("End")) {
             this.end(chat_id);
             return respond(chat_id, this.text_exit, null);
         }
 
+        if (text.equalsIgnoreCase("< Zurück")){
+            this.session.set(chat_id + ":back", "true");
+        }
+
 
         if (this.get_state(chat_id).equals("update")) {
             String state = this.states[Integer.parseInt(this.session.get(chat_id + ":state_finances_update"))];
 
-            if (state.equalsIgnoreCase("date")) {
-                return this.ask_date(update);
+            if (!this.session.get(chat_id + ":back").equals("true")){
+
+                if (state.equalsIgnoreCase("date")) {
+                    return this.ask_date(update);
+                }
+
+                if (state.equalsIgnoreCase("payer")) {
+                    return this.ask_who(update);
+                }
+
+                if (state.equalsIgnoreCase("receivers")) {
+                    return this.ask_whom(update);
+                }
+
+                if (state.equalsIgnoreCase("sum")) {
+                    return this.ask_how_much(update);
+                }
+
+                if (state.equalsIgnoreCase("occasion")) {
+                    return this.ask_for_what(update);
+                }
+
+                if (state.equalsIgnoreCase("summary")){
+                    return this.summary(update.getMessage().getChatId());
+                }
+            } else {
+                session.incrby(chat_id + ":state_finances_update", -1);
+                session.set(chat_id + ":awaiting_response", "false");
+                session.set(chat_id + ":back", "false");
+                state = this.states[Integer.parseInt(this.session.get(chat_id + ":state_finances_update"))];
+                message.setText("");
+                update.setMessage(message);
+
+                if (state.equalsIgnoreCase("date")) {
+                    return this.ask_date(update);
+                }
+
+                if (state.equalsIgnoreCase("payer")) {
+                    return this.undo_who(update);
+                }
+
+                if (state.equalsIgnoreCase("receivers")) {
+                    return this.ask_who(update);
+                }
+
+                if (state.equalsIgnoreCase("sum")) {
+                    return this.ask_how_much(update);
+                }
+
+                if (state.equalsIgnoreCase("occasion")) {
+                    return this.ask_for_what(update);
+                }
+
+                if (state.equalsIgnoreCase("summary")){
+                    return this.summary(update.getMessage().getChatId());
+                }
             }
 
-            if (state.equalsIgnoreCase("payer")) {
-                return this.ask_who(update);
-            }
-
-            if (state.equalsIgnoreCase("receivers")) {
-                return this.ask_whom(update);
-            }
-
-            if (state.equalsIgnoreCase("sum")) {
-                return this.ask_how_much(update);
-            }
-
-            if (state.equalsIgnoreCase("occasion")) {
-                return this.ask_for_what(update);
-            }
-
-            if (state.equalsIgnoreCase("summary")){
-                return this.summary(update.getMessage().getChatId());
-            }
         }
 
         if (this.get_state(chat_id).equals("history")) {

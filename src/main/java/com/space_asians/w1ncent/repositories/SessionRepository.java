@@ -23,6 +23,7 @@ public class SessionRepository {
         this.session.set(id + ":state_manager", "none");
         this.session.set(id + ":state_finances_update", "0");
         this.session.set(id + ":awaiting_response", "false");
+        this.session.set(id + ":back", "false");
 
         this.session.set(id + ":date", "");
         this.session.set(id + ":custom_date", "false");
