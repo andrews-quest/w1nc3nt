@@ -28,6 +28,9 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     @Query(value = "SELECT name FROM members WHERE chat_id = ?1", nativeQuery = true)
     public String findNameByChatId(Long chat_id);
 
+    @Query(value = "SELECT previous FROM members WHERE chat_id = ?1", nativeQuery = true)
+    public String findPreviousByChatId(Long chat_id);
+
     @Query(value = "SELECT chat_id FROM members WHERE  chat_id IS NOT null", nativeQuery = true)
     public Long[] getChatIds();
 

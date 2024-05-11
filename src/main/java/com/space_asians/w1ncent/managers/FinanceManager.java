@@ -538,18 +538,17 @@ public class FinanceManager extends W1nc3ntManager {
         Long chat_id = update.getMessage().getChatId();
         String transactions_preview = "";
         this.is_engaged = true;
-        /*
-        String author = this.membersRepository.findChatIdByAuthor();
-        int[] prev_transactions = this.transactionsRepository.findPreviousTransactionsByAuthor(author);
-        for(int id : prev_transactions){
-            Transaction prev_transaction = this.transactionsRepository.findTopByOrderByIdDesc();
+        String author = this.membersRepository.findNameByChatId(chat_id);
+        String[] prev_transactions = this.membersRepository.findPreviousByChatId(chat_id).split(" ");
+        for(String id : prev_transactions){
+            Transaction prev_transaction = this.transactionsRepository.findById(Integer.valueOf(id)).get();
             transactions_preview += this.short_format_simple_date(false,
                     prev_transaction.getWhen(),
                     prev_transaction.getWhom(),
                     prev_transaction.getWho(),
                     prev_transaction.getHow_much(),
-                    prev_transaction.getFor_what());
-        }*/
+                    prev_transaction.getFor_what()) + "\n";
+        }
 
         this.set_state("cancel", update.getMessage().getChatId());
         return respond(update.getMessage().getChatId(),
