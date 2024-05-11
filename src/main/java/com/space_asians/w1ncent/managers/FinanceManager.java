@@ -245,6 +245,7 @@ public class FinanceManager extends W1nc3ntManager {
             Float sum_part = sum / receivers.length;
             String author = this.membersRepository.findNameByChatId(chat_id);
             for (String member : receivers) {
+                if(member.equalsIgnoreCase(who)){continue;}
                 Transaction transaction = new Transaction();
                 transaction.setWhen(LocalDate.parse(this.session.get(chat_id + ":date")));
                 transaction.setWho(who);
@@ -286,7 +287,6 @@ public class FinanceManager extends W1nc3ntManager {
 
         if (Arrays.stream(this.members).toList().contains(text)) {
             this.session.set(chat_id + ":payer", text);
-            this.session.lpush(chat_id + ":selected_members", text);
             this.session.incr(chat_id.toString() + ":state_finances_update");
             this.session.set(chat_id + ":awaiting_response", "false");
             return this.consume(update);
@@ -298,8 +298,8 @@ public class FinanceManager extends W1nc3ntManager {
     private SendMessage ask_whom(Update update) {
         Long chat_id = update.getMessage().getChatId();
         String text = update.getMessage().getText();
-        ArrayList<String> selected_members = null;
-        if(this.session.exists(chat_id + ":selected_memers") == 1){
+        ArrayList<String> selected_members = new ArrayList<>();
+        if(this.session.exists(chat_id + ":selected_members") == 1){
             selected_members = (ArrayList<String>) this.session.lrange(chat_id + ":selected_members", 0, -1);
         }
 
@@ -402,6 +402,7 @@ public class FinanceManager extends W1nc3ntManager {
     private SendMessage summary(Long chat_id) {
         String response = this.text_summary;
         for (String member : this.session.lrange(chat_id + ":receivers", 0, -1)) {
+            if(this.session.get(chat_id + ":payer").equalsIgnoreCase(member)){continue;}
             response += this.short_format_simple_date(false,
                     LocalDate.parse(this.session.get(chat_id + ":date")),
                     this.session.get(chat_id + ":payer"),
