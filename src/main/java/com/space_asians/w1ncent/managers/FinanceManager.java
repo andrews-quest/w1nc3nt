@@ -122,7 +122,7 @@ public class FinanceManager extends W1nc3ntManager {
 
         if (text.equalsIgnoreCase("Ja")) {
             this.session.set(chat_id + ":date", String.valueOf(LocalDate.now()));
-            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+            this.session.incr(chat_id.toString() + ":state_finances_update");
             this.session.set(chat_id + ":awaiting_response", "false");
             return this.consume(update);
         } else if (text.equalsIgnoreCase("Nein")) {
@@ -287,7 +287,7 @@ public class FinanceManager extends W1nc3ntManager {
         if (Arrays.stream(this.members).toList().contains(text)) {
             this.session.set(chat_id + ":payer", text);
             this.session.lpush(chat_id + ":selected_members", text);
-            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+            this.session.incr(chat_id.toString() + ":state_finances_update");
             this.session.set(chat_id + ":awaiting_response", "false");
             return this.consume(update);
         }
@@ -314,6 +314,7 @@ public class FinanceManager extends W1nc3ntManager {
                     this.session.lpush(chat_id + ":receivers", member);
                 }
                 this.session.set(chat_id + ":multiple_members", "false");
+                this.session.incr(chat_id.toString() + ":state_finances_update");
                 this.session.set(chat_id + ":awaiting_response", "false");
                 return this.respond(chat_id,
                         this.text_how_much,
@@ -335,7 +336,7 @@ public class FinanceManager extends W1nc3ntManager {
         }
 
         if (Arrays.stream(this.members).toList().contains(text)) {
-            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+            this.session.incr(chat_id.toString() + ":state_finances_update");
             this.session.set(chat_id + ":awaiting_response", "false");
             this.session.lpush(chat_id + ":receivers", text);
             return this.consume(update);
@@ -366,12 +367,11 @@ public class FinanceManager extends W1nc3ntManager {
         }
 
         if (sum < 0) {
-            sum = (float) 0;
             return this.respond(chat_id, this.text_error_sum_negative, null);
         }
 
         this.session.set(chat_id + ":sum", text);
-        this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+        this.session.incr(chat_id + ":state_finances_update");
         this.session.set(chat_id + ":awaiting_response", "false");
         return this.consume(update);
     }
@@ -388,7 +388,7 @@ public class FinanceManager extends W1nc3ntManager {
         this.session.set(chat_id + ":occasion", text.substring(0, 1).toUpperCase() + text.substring(1));
         this.is_engaged = false;
         if (this.db_save(chat_id)) {
-            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+            this.session.incr(chat_id + ":state_finances_update");
             this.session.set(chat_id + ":awaiting_response", "false");
             return this.consume(update);
         } else {
