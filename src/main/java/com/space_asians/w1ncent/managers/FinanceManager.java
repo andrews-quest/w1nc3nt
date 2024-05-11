@@ -84,7 +84,55 @@ public class FinanceManager extends W1nc3ntManager {
         super.state_name = "finance";
     }
 
-    private SendMessage custom_date(String text, Long chat_id) {
+
+
+    private boolean db_restore_prev_balance() {
+        try {
+            Transaction transaction = transactionsRepository.findTopByOrderByIdDesc();
+            // this.whom.add(transaction.getWhom());
+            float how_much = transaction.getHow_much();
+            float who_balance = this.membersRepository.findBalanceByName(transaction.getWho());
+            // float whom_balance = this.membersRepository.findBalanceByName(this.whom.get(0));
+            this.membersRepository.updateBalance(transaction.getWho(), who_balance + how_much);
+            // this.membersRepository.updateBalance(this.whom.get(0), whom_balance - how_much);
+            transactionsRepository.deleteById(transaction.getId());
+            return true;
+        } catch (Exception e) {
+            System.out.println(e);
+            return false;
+        }
+    }
+
+    private SendMessage ask_date(Update update) {
+        Long chat_id = update.getMessage().getChatId();
+        String text = update.getMessage().getText();
+
+        if (this.session.get(chat_id + ":awaiting_response").equals("false")){
+            this.session.set(chat_id + ":awaiting_response", "true");
+            return this.respond(chat_id, this.text_date, this.create_yes_no_markup(true));
+        }
+
+        if (this.session.get(chat_id + ":custom_date").equals("true")) {
+            return this.custom_date(update);
+        }
+
+        if (text.equalsIgnoreCase("Ja")) {
+            this.session.set(chat_id + ":date", String.valueOf(LocalDate.now()));
+            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
+            this.session.set(chat_id + ":awaiting_response", "false");
+            return this.consume(update);
+        } else if (text.equalsIgnoreCase("Nein")) {
+            this.session.set(chat_id + ":custom_date", "true");
+            return this.respond(chat_id, this.text_ask_date, null);
+        }
+
+        return this.respond(chat_id, this.text_false_input, null);
+    }
+
+    private SendMessage custom_date(Update update) {
+        Long chat_id = update.getMessage().getChatId();
+        String text = update.getMessage().getText();
+
         if (text.matches(" *\\d\\d[ +|/|-]\\d\\d *")) {
             String[] day_and_month = text.split(" |-");
             LocalDate now = LocalDate.now();
@@ -107,11 +155,9 @@ public class FinanceManager extends W1nc3ntManager {
 
             this.session.set(chat_id + ":date", date.toString());
             this.session.set(chat_id + ":custom_date", "false");
-            return this.respond(chat_id, this.text_who, this.create_who_markup(
-                    false,
-                    true,
-                    false,
-                    null));
+            this.session.set(chat_id + ":awaiting_response", "false");
+            this.session.incr(chat_id + ":state_finances_update");
+            return consume(update);
         } else {
             return this.respond(chat_id, this.text_false_date, null);
         }
@@ -213,50 +259,6 @@ public class FinanceManager extends W1nc3ntManager {
             return false;
         }
     }
-
-    private boolean db_restore_prev_balance() {
-        try {
-            Transaction transaction = transactionsRepository.findTopByOrderByIdDesc();
-            // this.whom.add(transaction.getWhom());
-            float how_much = transaction.getHow_much();
-            float who_balance = this.membersRepository.findBalanceByName(transaction.getWho());
-            // float whom_balance = this.membersRepository.findBalanceByName(this.whom.get(0));
-            this.membersRepository.updateBalance(transaction.getWho(), who_balance + how_much);
-            // this.membersRepository.updateBalance(this.whom.get(0), whom_balance - how_much);
-            transactionsRepository.deleteById(transaction.getId());
-            return true;
-        } catch (Exception e) {
-            System.out.println(e);
-            return false;
-        }
-    }
-
-    private SendMessage ask_date(Update update) {
-        Long chat_id = update.getMessage().getChatId();
-        String text = update.getMessage().getText();
-
-        if (this.session.get(chat_id + ":awaiting_response").equals("false")){
-            this.session.set(chat_id + ":awaiting_response", "true");
-            return this.respond(chat_id, this.text_date, this.create_yes_no_markup(true));
-        }
-
-        if (this.session.get(chat_id + ":custom_date") == "false") {
-            return this.custom_date(text, chat_id);
-        }
-
-        if (text.equalsIgnoreCase("Ja")) {
-            this.session.set(chat_id + ":date", String.valueOf(LocalDate.now()));
-            this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
-            this.session.set(chat_id + ":awaiting_response", "false");
-            return this.consume(update);
-        } else if (text.equalsIgnoreCase("Nein")) {
-            this.session.set(chat_id + ":custom_date", "true");
-            return this.respond(chat_id, this.text_ask_date, null);
-        }
-
-        return this.respond(chat_id, this.text_false_input, null);
-    }
-
     private SendMessage ask_who (Update update){
         Long chat_id = update.getMessage().getChatId();
         String text = update.getMessage().getText();
