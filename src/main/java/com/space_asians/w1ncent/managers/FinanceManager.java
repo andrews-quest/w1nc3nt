@@ -30,7 +30,6 @@ public class FinanceManager extends W1nc3ntManager {
     private TransactionsRepository transactionsRepository;
     @Autowired
     private MembersRepository membersRepository;
-    private LocalDate date;
     // SendMessage texts
     @Value("${text.finance.date}")
     private String text_date;
@@ -90,15 +89,15 @@ public class FinanceManager extends W1nc3ntManager {
             String[] day_and_month = text.split(" |-");
             LocalDate now = LocalDate.now();
             int year = now.getYear();
+            LocalDate date;
 
             try {
-                this.date = LocalDate.of(year, Integer.parseInt(day_and_month[1]), Integer.parseInt(day_and_month[0]));
+                date = LocalDate.of(year, Integer.parseInt(day_and_month[1]), Integer.parseInt(day_and_month[0]));
             } catch (DateTimeException e) {
                 return this.respond(chat_id, this.text_error_date, null);
             }
 
-            if (this.date.until(now, DAYS) < -2 || this.date.until(now, DAYS) > 7) {
-                this.date = null;
+            if (date.until(now, DAYS) < -2 || date.until(now, DAYS) > 7) {
                 return respond(chat_id,
                         String.format(this.text_error_date_boundaries,
                                 now.minusDays(7).format(this.dateFormatterPartial),
@@ -106,7 +105,8 @@ public class FinanceManager extends W1nc3ntManager {
                         null);
             }
 
-            this.session.hset(chat_id.toString(), "custom_date", "false");
+            this.session.set(chat_id + ":date", date.toString());
+            this.session.set(chat_id + ":custom_date", "false");
             return this.respond(chat_id, this.text_who, this.create_who_markup(
                     false,
                     true,
@@ -194,7 +194,7 @@ public class FinanceManager extends W1nc3ntManager {
             Float sum_part = sum / receivers.length;
             for (String member : receivers) {
                 Transaction transaction = new Transaction();
-                transaction.setWhen(this.date);
+                transaction.setWhen(LocalDate.parse(this.session.get(chat_id + ":date")));
                 transaction.setWho(who);
                 transaction.setWhom(member);
                 transaction.setHow_much(sum_part);
@@ -245,7 +245,7 @@ public class FinanceManager extends W1nc3ntManager {
         }
 
         if (text.equalsIgnoreCase("Ja")) {
-            this.date = LocalDate.now();
+            this.session.set(chat_id + ":date", String.valueOf(LocalDate.now()));
             this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
             this.session.set(chat_id + ":awaiting_response", "false");
             return this.consume(update);
@@ -386,7 +386,7 @@ public class FinanceManager extends W1nc3ntManager {
         String response = this.text_summary;
         for (String member : this.session.lrange(chat_id + ":receivers", 0, -1)) {
             response += this.short_format_simple_date(false,
-                    this.date,
+                    LocalDate.parse(this.session.get(chat_id + ":date")),
                     this.session.get(chat_id + ":payer"),
                     member,
                     Float.parseFloat(this.session.get(chat_id + ":sum")),
@@ -498,7 +498,6 @@ public class FinanceManager extends W1nc3ntManager {
         super.end(chat_id);
         this.is_engaged = false;
         this.sessionRepository.create_session(chat_id);
-        this.date = null;
     }
 
     public SendMessage update(Update update) {
