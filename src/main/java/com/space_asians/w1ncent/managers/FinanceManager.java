@@ -31,7 +31,6 @@ public class FinanceManager extends W1nc3ntManager {
     @Autowired
     private MembersRepository membersRepository;
     private LocalDate date;
-    private ArrayList<String> whom = new ArrayList<>();
     private float how_much;
     // SendMessage texts
     @Value("${text.finance.date}")
@@ -191,8 +190,9 @@ public class FinanceManager extends W1nc3ntManager {
     private boolean db_save(Long chat_id) {
         String who = this.session.get(chat_id + ":payer");
         try {
-            Float sum_part = this.how_much / this.whom.size();
-            for (String member : whom) {
+            String[] receivers = this.session.lrange(chat_id + ":receivers", 0, -1).toArray(new String[0]);
+            Float sum_part = this.how_much / receivers.length;
+            for (String member : receivers) {
                 Transaction transaction = new Transaction();
                 transaction.setWhen(this.date);
                 transaction.setWho(who);
@@ -217,12 +217,12 @@ public class FinanceManager extends W1nc3ntManager {
     private boolean db_restore_prev_balance() {
         try {
             Transaction transaction = transactionsRepository.findTopByOrderByIdDesc();
-            this.whom.add(transaction.getWhom());
+            // this.whom.add(transaction.getWhom());
             float how_much = transaction.getHow_much();
             float who_balance = this.membersRepository.findBalanceByName(transaction.getWho());
-            float whom_balance = this.membersRepository.findBalanceByName(this.whom.get(0));
+            // float whom_balance = this.membersRepository.findBalanceByName(this.whom.get(0));
             this.membersRepository.updateBalance(transaction.getWho(), who_balance + how_much);
-            this.membersRepository.updateBalance(this.whom.get(0), whom_balance - how_much);
+            // this.membersRepository.updateBalance(this.whom.get(0), whom_balance - how_much);
             transactionsRepository.deleteById(transaction.getId());
             return true;
         } catch (Exception e) {
@@ -296,7 +296,9 @@ public class FinanceManager extends W1nc3ntManager {
 
         if (this.session.get(chat_id + ":multiple_members").equals("true")) {
             if (text.equalsIgnoreCase("Weiter >")) {
-                this.whom = selected_members;
+                for( String member : selected_members){
+                    this.session.lpush(chat_id + ":receivers", member);
+                }
                 this.session.set(chat_id + ":multiple_members", "false");
                 this.session.set(chat_id + ":awaiting_response", "false");
                 return this.respond(chat_id,
@@ -321,7 +323,7 @@ public class FinanceManager extends W1nc3ntManager {
         if (Arrays.stream(this.members).toList().contains(text)) {
             this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
             this.session.set(chat_id + ":awaiting_response", "false");
-            this.whom.add(text);
+            this.session.lpush(chat_id + ":receivers", text);
             return this.consume(update);
         } else if (text.equalsIgnoreCase("Mehrere")) {
             this.session.set(chat_id + ":multiple_members", "true");
@@ -380,7 +382,7 @@ public class FinanceManager extends W1nc3ntManager {
 
     private SendMessage summary(Long chat_id) {
         String response = this.text_summary;
-        for (String member : this.whom) {
+        for (String member : this.session.lrange(chat_id + ":receivers", 0, -1)) {
             response += this.short_format_simple_date(false,
                     this.date,
                     this.session.get(chat_id.toString() + ":payer"),
@@ -495,7 +497,6 @@ public class FinanceManager extends W1nc3ntManager {
         this.is_engaged = false;
         this.sessionRepository.create_session(chat_id);
         this.date = null;
-        this.whom = null;
         this.how_much = 0;
     }
 
