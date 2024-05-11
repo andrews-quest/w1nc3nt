@@ -79,6 +79,8 @@ public class FinanceManager extends W1nc3ntManager {
     private String text_next_member;
     @Value("${text.finance.multiple_members}")
     private String text_multiple_members;
+    @Value("${text.finance.no_previous_transactions}")
+    private String text_no_previous_transactions;
 
     public FinanceManager() {
         super.state_name = "finance";
@@ -86,16 +88,18 @@ public class FinanceManager extends W1nc3ntManager {
 
 
 
-    private boolean db_restore_prev_balance() {
+    private boolean db_restore_prev_balance(Long chat_id) {
         try {
-            Transaction transaction = transactionsRepository.findTopByOrderByIdDesc();
-            // this.whom.add(transaction.getWhom());
-            float how_much = transaction.getHow_much();
-            float who_balance = this.membersRepository.findBalanceByName(transaction.getWho());
-            // float whom_balance = this.membersRepository.findBalanceByName(this.whom.get(0));
-            this.membersRepository.updateBalance(transaction.getWho(), who_balance + how_much);
-            // this.membersRepository.updateBalance(this.whom.get(0), whom_balance - how_much);
-            transactionsRepository.deleteById(transaction.getId());
+            this.membersRepository.updatePrevious(chat_id, null);
+
+            for(String id : this.session.lrange(chat_id + ":previous_transactions", 0, -1)){
+                Transaction transaction = transactionsRepository.findById(Integer.valueOf(id)).get();
+
+                membersRepository.updateBalance(transaction.getWho(), -transaction.getHow_much());
+                membersRepository.updateBalance(transaction.getWhom(), transaction.getHow_much());
+
+                transactionsRepository.deleteById(transaction.getId());
+            }
             return true;
         } catch (Exception e) {
             System.out.println(e);
@@ -485,14 +489,15 @@ public class FinanceManager extends W1nc3ntManager {
         }
 
         if (this.get_state(chat_id).equals("cancel")) {
-            this.end(chat_id);
             if (update.getMessage().getText().equalsIgnoreCase("ja")) {
-                if (this.db_restore_prev_balance()) {
+                if (this.db_restore_prev_balance(chat_id)) {
+                    this.set_state("none", chat_id);
                     return respond(chat_id, this.text_cancel_yes, null);
                 } else {
                     return respond(chat_id, this.text_error_db, null);
                 }
             } else if (update.getMessage().getText().equalsIgnoreCase("nein")) {
+                this.set_state("none", chat_id);
                 return respond(chat_id, this.text_cancel_no, null);
             } else {
                 return respond(chat_id, this.text_false_input, null);
@@ -538,8 +543,15 @@ public class FinanceManager extends W1nc3ntManager {
         Long chat_id = update.getMessage().getChatId();
         String transactions_preview = "";
         this.is_engaged = true;
-        String author = this.membersRepository.findNameByChatId(chat_id);
-        String[] prev_transactions = this.membersRepository.findPreviousByChatId(chat_id).split(" ");
+
+        String[] prev_transactions;
+        String prev_temp = this.membersRepository.findPreviousByChatId(chat_id);
+        if (prev_temp != null){
+            prev_transactions = prev_temp.split(" ");
+        } else {
+            return respond(chat_id, this.text_no_previous_transactions, null);
+        }
+
         for(String id : prev_transactions){
             Transaction prev_transaction = this.transactionsRepository.findById(Integer.valueOf(id)).get();
             transactions_preview += this.short_format_simple_date(false,
@@ -548,10 +560,12 @@ public class FinanceManager extends W1nc3ntManager {
                     prev_transaction.getWho(),
                     prev_transaction.getHow_much(),
                     prev_transaction.getFor_what()) + "\n";
+
+            this.session.lpush(chat_id + ":previous_transactions", id);
         }
 
-        this.set_state("cancel", update.getMessage().getChatId());
-        return respond(update.getMessage().getChatId(),
+        this.set_state("cancel", chat_id);
+        return respond(chat_id,
                 String.format(this.text_cancel, transactions_preview),
                 this.create_yes_no_markup(false));
     }
