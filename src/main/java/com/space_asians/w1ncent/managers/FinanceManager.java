@@ -298,7 +298,10 @@ public class FinanceManager extends W1nc3ntManager {
     private SendMessage ask_whom(Update update) {
         Long chat_id = update.getMessage().getChatId();
         String text = update.getMessage().getText();
-        ArrayList<String> selected_members = (ArrayList<String>) this.session.lrange(chat_id + ":selected_members", 0, -1);
+        ArrayList<String> selected_members = null;
+        if(this.session.exists(chat_id + ":selected_memers") == 1){
+            selected_members = (ArrayList<String>) this.session.lrange(chat_id + ":selected_members", 0, -1);
+        }
 
         if (this.session.get(chat_id + ":awaiting_response").equals("false")){
             this.session.set(chat_id + ":awaiting_response", "true");
@@ -411,6 +414,13 @@ public class FinanceManager extends W1nc3ntManager {
 
     // Undo Functions
 
+    private SendMessage undo_date(Update update){
+        Long chat_id = update.getMessage().getChatId();
+        this.session.set(chat_id + ":date", "");
+        this.session.set(chat_id + ":custom_date", "false");
+        return consume(update);
+    }
+
     private SendMessage undo_who(Update update){
         Long chat_id = update.getMessage().getChatId();
         this.session.set(chat_id + ":payer", "");
@@ -418,6 +428,24 @@ public class FinanceManager extends W1nc3ntManager {
         return consume(update);
     }
 
+    private SendMessage undo_whom(Update update){
+        Long chat_id = update.getMessage().getChatId();
+        this.session.del(chat_id + ":receivers");
+        this.session.set(chat_id + ":multiple_members", "false");
+        return consume(update);
+    }
+
+    private SendMessage undo_how_much(Update update){
+        Long chat_id = update.getMessage().getChatId();
+        this.session.set(chat_id + ":sum", "");
+        return consume(update);
+    }
+
+    private SendMessage undo_for_what(Update update){
+        Long chat_id = update.getMessage().getChatId();
+        this.session.set(chat_id + ":occasion", "");
+        return consume(update);
+    }
     // Main Function
 
     @Override
@@ -473,7 +501,7 @@ public class FinanceManager extends W1nc3ntManager {
                 update.setMessage(message);
 
                 if (state.equalsIgnoreCase("date")) {
-                    return this.ask_date(update);
+                    return this.undo_date(update);
                 }
 
                 if (state.equalsIgnoreCase("payer")) {
@@ -481,19 +509,15 @@ public class FinanceManager extends W1nc3ntManager {
                 }
 
                 if (state.equalsIgnoreCase("receivers")) {
-                    return this.ask_who(update);
+                    return this.undo_whom(update);
                 }
 
                 if (state.equalsIgnoreCase("sum")) {
-                    return this.ask_how_much(update);
+                    return this.undo_how_much(update);
                 }
 
                 if (state.equalsIgnoreCase("occasion")) {
-                    return this.ask_for_what(update);
-                }
-
-                if (state.equalsIgnoreCase("summary")){
-                    return this.summary(update.getMessage().getChatId());
+                    return this.undo_for_what(update);
                 }
             }
 
