@@ -49,7 +49,6 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
     protected boolean is_private = false;
 
-    protected String session_id = "";
 
     protected Optional<W1nc3ntManager> get_manager(String manager) {
         return Optional.ofNullable(this.managers.get(manager));

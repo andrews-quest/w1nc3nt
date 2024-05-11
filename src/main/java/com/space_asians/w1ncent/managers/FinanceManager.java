@@ -33,7 +33,6 @@ public class FinanceManager extends W1nc3ntManager {
     private LocalDate date;
     private ArrayList<String> whom = new ArrayList<>();
     private float how_much;
-    private String for_what;
     // SendMessage texts
     @Value("${text.finance.date}")
     private String text_date;
@@ -199,7 +198,7 @@ public class FinanceManager extends W1nc3ntManager {
                 transaction.setWho(who);
                 transaction.setWhom(member);
                 transaction.setHow_much(sum_part);
-                transaction.setFor_what(this.for_what);
+                transaction.setFor_what(this.session.get(chat_id + ":occasion"));
                 transactionsRepository.save(transaction);
 
                 float balance = this.membersRepository.findBalanceByName(who) - this.how_much;
@@ -368,7 +367,7 @@ public class FinanceManager extends W1nc3ntManager {
             return this.respond(chat_id, this.text_for_what, this.create_end_markup());
         }
 
-        this.for_what = text.substring(0, 1).toUpperCase() + text.substring(1);
+        this.session.set(chat_id + ":occasion", text.substring(0, 1).toUpperCase() + text.substring(1));
         this.is_engaged = false;
         if (this.db_save(chat_id)) {
             this.session.incrby(chat_id.toString() + ":state_finances_update", 1);
@@ -387,7 +386,7 @@ public class FinanceManager extends W1nc3ntManager {
                     this.session.get(chat_id.toString() + ":payer"),
                     member,
                     this.how_much,
-                    this.for_what) + "\n";
+                    this.session.get(chat_id + ":occasion")) + "\n";
         }
         return respond(chat_id, response, null);
     }
@@ -498,7 +497,6 @@ public class FinanceManager extends W1nc3ntManager {
         this.date = null;
         this.whom = null;
         this.how_much = 0;
-        this.for_what = null;
     }
 
     public SendMessage update(Update update) {
