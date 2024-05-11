@@ -27,14 +27,10 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
     @PostConstruct
     public void init_managers() {
-        // this.managers.put(this.mainManager.get_name(), this.mainManager);
         this.managers.put(this.financeManager.get_name(), this.financeManager);
         this.managers.put(this.moonAPIManager.get_name(), this.moonAPIManager);
         this.managers.put(this.accountManager.get_name(), this.accountManager);
-
-
     }
-
 
     @Autowired
     protected FinanceManager financeManager;
@@ -118,7 +114,7 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
         System.out.println("----> Chat id : " + chat_id);
         System.out.println("----> text    : " + update.getMessage().getText());
 
-        // a manager is engaged
+          // a manager is engaged
         if (!Objects.equals(this.mainManager.current_state(chat_id), mainManager.get_name()) &
                 this.accountManager.is_logged_in(update)) {
             this.sm = this.get_manager(this.mainManager.current_state(chat_id)).orElseGet(null).consume(update);
@@ -128,11 +124,14 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
         // send a respective message
         if (this.sm != null) {
+            System.out.println(sm.getText() + sm.getChatId());
             try {
                 this.telegramClient.execute(this.sm);
             } catch (TelegramApiException e) {
                 this.mainManager.error(update);
             }
+        }else {
+            System.out.println("Message wasn't formed by W1nc3nt");
         }
 
         this.sm = null;

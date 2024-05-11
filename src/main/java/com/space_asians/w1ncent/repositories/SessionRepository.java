@@ -3,15 +3,26 @@ package com.space_asians.w1ncent.repositories;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SessionRepository {
 
+    @Value("${session.url}")
+    String url;
+    RedisClient redisClient;
+    StatefulRedisConnection<String, String> redisConnection;
+    RedisCommands<String, String> session;
 
-    RedisClient redisClient = RedisClient.create("redis://localhost:6379/0");
-    StatefulRedisConnection<String, String> redisConnection = this.redisClient.connect();
-    RedisCommands<String, String> session = redisConnection.sync();
+    @PostConstruct
+    public void init () {
+        this.redisClient = RedisClient.create(url);
+        this.redisConnection = this.redisClient.connect();
+        this.session = redisConnection.sync();
+    }
 
     public RedisCommands<String, String> create_connection() {
         return this.session;

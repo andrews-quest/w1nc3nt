@@ -31,17 +31,6 @@ public class Member {
     @Column
     private String previous;
 
-    public int[] getPrevious_transactions() {
-        return previous_transactions;
-    }
-
-    public void setPrevious_transactions(int[] previous_transactions) {
-        this.previous_transactions = previous_transactions;
-    }
-
-    @Column
-    private int[] previous_transactions;
-
     public Member() {
     }
 
