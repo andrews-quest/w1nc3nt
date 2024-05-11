@@ -219,9 +219,9 @@ public class FinanceManager extends W1nc3ntManager {
         who = who.substring(0, 1);
         whom = whom.substring(0, 1);
         if (date_first) {
-            return String.format("%s %s -> %s %.2f€ für %s", date, who, whom, how_much, for_what);
+            return String.format("%s %s -> %s %.2f€ als %s", date, whom, who, how_much, for_what);
         } else {
-            return String.format("%s -> %s %.2f€ für %s %s", who, whom, how_much, for_what, date);
+            return String.format("%s -> %s %.2f€ als %s %s", whom, who, how_much, for_what, date);
         }
     }
 
