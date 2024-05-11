@@ -319,9 +319,7 @@ public class FinanceManager extends W1nc3ntManager {
                 this.session.set(chat_id + ":multiple_members", "false");
                 this.session.incr(chat_id.toString() + ":state_finances_update");
                 this.session.set(chat_id + ":awaiting_response", "false");
-                return this.respond(chat_id,
-                        this.text_how_much,
-                        this.create_end_markup());
+                return consume(update);
             } else if (Arrays.stream(this.members).toList().contains(text)) {
                 this.session.lpush(chat_id + ":selected_members", text);
                 selected_members.add(text);
@@ -455,7 +453,7 @@ public class FinanceManager extends W1nc3ntManager {
         String text = message.getText();
         Long chat_id = message.getChatId();
 
-        if (text.equalsIgnoreCase("Beenden") || text.equalsIgnoreCase("End")) {
+        if (text.equalsIgnoreCase("X Beenden") || text.equalsIgnoreCase("End")) {
             this.end(chat_id);
             return respond(chat_id, this.text_exit, null);
         }
