@@ -115,9 +115,7 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
     @Override
     public void consume(Update update) {
-        Long chat_id = update.getMessage().getChatId();
-
-        // debugging messages
+        Long chat_id = update.getMessage().getChatId(); // debugging messages
         System.out.println("----> Chat id : " + chat_id);
         System.out.println("----> text    : " + update.getMessage().getText());
 

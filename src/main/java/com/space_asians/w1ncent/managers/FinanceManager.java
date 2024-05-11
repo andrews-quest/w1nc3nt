@@ -26,7 +26,6 @@ public class FinanceManager extends W1nc3ntManager {
     private final String[] states = {"date", "payer", "receivers", "sum", "occasion", "summary"};
     @Value("${main.members}")
     private String[] members;
-    private Transaction transaction = new Transaction();
     @Autowired
     private TransactionsRepository transactionsRepository;
     @Autowired
@@ -195,13 +194,13 @@ public class FinanceManager extends W1nc3ntManager {
         try {
             Float sum_part = this.how_much / this.whom.size();
             for (String member : whom) {
-                this.transaction = new Transaction();
-                this.transaction.setWhen(this.date);
-                this.transaction.setWho(who);
-                this.transaction.setWhom(member);
-                this.transaction.setHow_much(sum_part);
-                this.transaction.setFor_what(this.for_what);
-                this.transactionsRepository.save(this.transaction);
+                Transaction transaction = new Transaction();
+                transaction.setWhen(this.date);
+                transaction.setWho(who);
+                transaction.setWhom(member);
+                transaction.setHow_much(sum_part);
+                transaction.setFor_what(this.for_what);
+                transactionsRepository.save(transaction);
 
                 float balance = this.membersRepository.findBalanceByName(who) - this.how_much;
                 this.membersRepository.updateBalance(who, balance);
@@ -218,14 +217,14 @@ public class FinanceManager extends W1nc3ntManager {
 
     private boolean db_restore_prev_balance() {
         try {
-            this.transaction = this.transactionsRepository.findTopByOrderByIdDesc();
-            this.whom.add(this.transaction.getWhom());
-            float how_much = this.transaction.getHow_much();
-            float who_balance = this.membersRepository.findBalanceByName(this.transaction.getWho());
+            Transaction transaction = transactionsRepository.findTopByOrderByIdDesc();
+            this.whom.add(transaction.getWhom());
+            float how_much = transaction.getHow_much();
+            float who_balance = this.membersRepository.findBalanceByName(transaction.getWho());
             float whom_balance = this.membersRepository.findBalanceByName(this.whom.get(0));
-            this.membersRepository.updateBalance(this.transaction.getWho(), who_balance + how_much);
+            this.membersRepository.updateBalance(transaction.getWho(), who_balance + how_much);
             this.membersRepository.updateBalance(this.whom.get(0), whom_balance - how_much);
-            this.transactionsRepository.deleteById(this.transaction.getId());
+            transactionsRepository.deleteById(transaction.getId());
             return true;
         } catch (Exception e) {
             System.out.println(e);
@@ -448,9 +447,9 @@ public class FinanceManager extends W1nc3ntManager {
             Iterable<Transaction> transactions;
             String who = this.session.hget(chat_id.toString(), "who");
             if (who.equalsIgnoreCase("Alle")) {
-                transactions = this.transactionsRepository.findAllOrderByWhenAsc();
+                transactions = transactionsRepository.findAllOrderByWhenAsc();
             } else if (Arrays.stream(this.members).toList().contains(who)) {
-                transactions = this.transactionsRepository.findHistory(who);
+                transactions = transactionsRepository.findHistory(who);
             } else {
                 return respond(chat_id, this.text_false_input, null);
             }
@@ -494,7 +493,6 @@ public class FinanceManager extends W1nc3ntManager {
     @Override
     public void end(Long chat_id) {
         super.end(chat_id);
-        this.transaction = new Transaction();
         this.is_engaged = false;
         this.sessionRepository.create_session(chat_id);
         this.date = null;
@@ -529,7 +527,7 @@ public class FinanceManager extends W1nc3ntManager {
 
     public SendMessage cancel_last(Update update) {
         this.is_engaged = true;
-        Transaction prev_transaction = this.transactionsRepository.findTopByOrderByIdDesc();
+        Transaction prev_transaction = transactionsRepository.findTopByOrderByIdDesc();
         ArrayList<String> who_temp = new ArrayList<>();
         who_temp.add(prev_transaction.getWho());
         String prev_transaction_short = this.short_format_simple_date(false,
