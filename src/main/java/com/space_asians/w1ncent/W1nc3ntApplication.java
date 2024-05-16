@@ -16,9 +16,9 @@ public class W1nc3ntApplication implements ApplicationRunner {
     @Value("${environment}")
     private String env;
     @Value("${telegram.bot.token}")
-    private String token;
+    private String production_token;
     @Value("${telegram.bot.group.token}")
-    private String group_token;
+    private String production_group_token;
     @Value("${telegram.bot.test_token}")
     private String test_token;
     @Value("${telegram.bot.group.test_token}")
@@ -31,14 +31,16 @@ public class W1nc3ntApplication implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        String token, group_token;
-
+        String token = null;
+        String group_token = null;
         if (this.env.equalsIgnoreCase("DEV")) {
             token = this.test_token;
             group_token = this.test_group_token;
-        } else {
-            token = this.token;
-            group_token = this.group_token;
+        }
+
+        if (this.env.equalsIgnoreCase("PRODUCTION")){
+            token = this.production_token;
+            group_token = this.production_group_token;
         }
 
         MultithreadedTelegramApplication botsPrivateApplication = new MultithreadedTelegramApplication(token,

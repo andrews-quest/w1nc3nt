@@ -10,7 +10,7 @@ import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 public class W1nc3ntPrivateBot extends W1nc3ntBot {
     @Value("${telegram.bot.username}")
     private String username;
-    @Value("${telegram.bot.test_token}")
+    @Value("${telegram.bot.token}")
     private String token;
     @Value("${telegram.bot.test_token}")
     private String test_token;

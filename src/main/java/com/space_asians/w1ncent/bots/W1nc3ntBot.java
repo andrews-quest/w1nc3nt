@@ -111,8 +111,8 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
     @Override
     public void consume(Update update) {
         Long chat_id = update.getMessage().getChatId(); // debugging messages
-        System.out.println("----> Chat id : " + chat_id);
-        System.out.println("----> text    : " + update.getMessage().getText());
+        System.out.println(" ----> Chat id : " + chat_id);
+        System.out.println(" ----> text    : " + update.getMessage().getText());
 
           // a manager is engaged
         if (!Objects.equals(this.mainManager.current_state(chat_id), mainManager.get_name()) &
@@ -124,7 +124,8 @@ public class W1nc3ntBot implements LongPollingSingleThreadUpdateConsumer {
 
         // send a respective message
         if (this.sm != null) {
-            System.out.println(sm.getText() + sm.getChatId());
+            // debug info
+            System.out.println(" ----> " + sm.getText() + " to " + sm.getChatId());
             try {
                 this.telegramClient.execute(this.sm);
             } catch (TelegramApiException e) {
