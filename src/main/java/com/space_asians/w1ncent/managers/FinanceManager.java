@@ -227,9 +227,9 @@ public class FinanceManager extends W1nc3ntManager {
 
     private String short_format_simple_date(boolean date_first, LocalDate date, String who, String whom, float how_much, String for_what) {
         if (date.equals(LocalDate.now())) {
-            return short_format(date_first, "heute", who, whom, how_much, for_what);
+            return short_format(date_first, "heute", whom, who, how_much, for_what);
         } else if (date.equals(LocalDate.now().minusDays(1))) {
-            return short_format(date_first, "gestern", who, whom, how_much, for_what);
+            return short_format(date_first, "gestern", whom, who, how_much, for_what);
         } else {
             String date_str = date.format(this.dateFormatterPartial);
             return short_format(date_first, date_str, who, whom, how_much, for_what);
@@ -243,6 +243,7 @@ public class FinanceManager extends W1nc3ntManager {
             String[] receivers = this.session.lrange(chat_id + ":receivers", 0, -1).toArray(new String[0]);
             Float sum = Float.parseFloat(this.session.get(chat_id + ":sum"));
             Float sum_part = sum / receivers.length;
+            this.session.set(chat_id + ":sum", String.valueOf(sum_part));
             String author = this.membersRepository.findNameByChatId(chat_id);
             for (String member : receivers) {
                 if(member.equalsIgnoreCase(who)){continue;}
@@ -259,11 +260,8 @@ public class FinanceManager extends W1nc3ntManager {
                 int id = transaction.getId();
                 previous += String.valueOf(id) + " ";
 
-                float balance = this.membersRepository.findBalanceByName(who) - sum;
-                this.membersRepository.updateBalance(who, balance);
-
-                balance = this.membersRepository.findBalanceByName(member) + sum;
-                this.membersRepository.updateBalance(member, balance);
+                this.membersRepository.updateBalance(who, sum_part);
+                this.membersRepository.updateBalance(member, -sum_part);
             }
             this.membersRepository.updatePrevious(chat_id, previous);
             return true;

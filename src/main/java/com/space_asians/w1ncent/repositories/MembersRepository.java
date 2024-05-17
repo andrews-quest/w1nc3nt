@@ -35,19 +35,19 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     public Long[] getChatIds();
 
     @Modifying
-    @Query(value = "UPDATE Member m set m.balance = m.balance + ?2 WHERE m.name = ?1")
+    @Query(value = "UPDATE Member m SET m.balance = ?2 + m.balance WHERE m.name = ?1")
     public void updateBalance(String name, float balance);
 
     @Modifying
-    @Query(value = "UPDATE Member m set m.chat_id = ?1 WHERE m.password = ?2")
+    @Query(value = "UPDATE Member m SET m.chat_id = ?1 WHERE m.password = ?2")
     public void updateChatId(Long chat_id, String password);
 
     @Modifying
-    @Query(value = "UPDATE Member m set m.previous = ?2 WHERE m.chat_id = ?1")
+    @Query(value = "UPDATE Member m SET m.previous = ?2 WHERE m.chat_id = ?1")
     public void updatePrevious(Long chat_id, String previous);
 
     @Modifying
-    @Query(value = "UPDATE Member m set m.chat_id = 0 WHERE m.chat_id = ?1")
+    @Query(value = "UPDATE Member m SET m.chat_id = 0 WHERE m.chat_id = ?1")
     public void dropChatId(Long chat_id);
 
     @Modifying
