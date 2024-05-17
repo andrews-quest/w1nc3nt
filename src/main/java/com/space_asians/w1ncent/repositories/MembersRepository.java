@@ -35,7 +35,7 @@ public interface MembersRepository extends CrudRepository<Member, Integer> {
     public Long[] getChatIds();
 
     @Modifying
-    @Query(value = "UPDATE Member m SET m.balance = ?2 + m.balance WHERE m.name = ?1")
+    @Query(value = "UPDATE Member m SET m.balance = (?2 + m.balance) WHERE m.name = ?1")
     public void updateBalance(String name, float balance);
 
     @Modifying

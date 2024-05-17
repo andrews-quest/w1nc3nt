@@ -259,8 +259,7 @@ public class FinanceManager extends W1nc3ntManager {
 
                 int id = transaction.getId();
                 previous += String.valueOf(id) + " ";
-
-                this.membersRepository.updateBalance(who, sum_part);
+                this.membersRepository.updateBalance(who,  sum_part);
                 this.membersRepository.updateBalance(member, -sum_part);
             }
             this.membersRepository.updatePrevious(chat_id, previous);
